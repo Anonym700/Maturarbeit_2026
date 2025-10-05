@@ -322,6 +322,195 @@ struct ChoreRow: View {
     }
 }
 
+// MARK: - Progress Ring
+
+/// Circular progress ring with percentage display
+struct ProgressRing: View {
+    let progress: Double
+    let lineWidth: CGFloat
+    let size: CGFloat
+    var showCheckmark: Bool = true
+    
+    init(progress: Double, lineWidth: CGFloat = 12, size: CGFloat = 200, showCheckmark: Bool = true) {
+        self.progress = min(max(progress, 0), 1) // Clamp between 0 and 1
+        self.lineWidth = lineWidth
+        self.size = size
+        self.showCheckmark = showCheckmark
+    }
+    
+    var body: some View {
+        ZStack {
+            // Background ring
+            Circle()
+                .stroke(AppTheme.Colors.textTertiary.opacity(0.2), lineWidth: lineWidth)
+                .frame(width: size, height: size)
+            
+            // Progress ring
+            Circle()
+                .trim(from: 0, to: progress)
+                .stroke(
+                    AppTheme.Colors.accent,
+                    style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
+                )
+                .frame(width: size, height: size)
+                .rotationEffect(.degrees(-90))
+                .animation(AppTheme.Animation.spring, value: progress)
+            
+            // Center content
+            VStack(spacing: AppTheme.Spacing.xxSmall) {
+                if progress >= 1.0 && showCheckmark {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: size * 0.3))
+                        .foregroundColor(AppTheme.Colors.success)
+                        .transition(.scale.combined(with: .opacity))
+                } else {
+                    Text("\(Int(progress * 100))%")
+                        .font(.system(size: size * 0.24, weight: .bold, design: .rounded))
+                        .foregroundColor(AppTheme.Colors.text)
+                }
+            }
+        }
+        .accessibilityLabel("Progress: \(Int(progress * 100)) percent complete")
+        .accessibilityValue(progress >= 1.0 ? "All tasks completed" : "\(Int(progress * 100)) percent")
+    }
+}
+
+// MARK: - Stats Card
+
+/// Statistics card with icon, value, and label
+struct StatsCard: View {
+    let icon: String
+    let value: String
+    let label: String
+    let color: Color
+    
+    init(icon: String, value: String, label: String, color: Color = AppTheme.Colors.accent) {
+        self.icon = icon
+        self.value = value
+        self.label = label
+        self.color = color
+    }
+    
+    var body: some View {
+        VStack(spacing: AppTheme.Spacing.small) {
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundColor(color)
+            
+            Text(value)
+                .font(AppTheme.Typography.title2)
+                .foregroundColor(AppTheme.Colors.text)
+            
+            Text(label)
+                .font(AppTheme.Typography.caption)
+                .foregroundColor(AppTheme.Colors.textSecondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(AppTheme.Spacing.medium)
+        .background(AppTheme.Colors.cardBackground)
+        .cornerRadius(AppTheme.CornerRadius.medium)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(label): \(value)")
+    }
+}
+
+// MARK: - Task Summary Card
+
+/// Dashboard task card with target icon and completion status
+struct TaskSummaryCard: View {
+    let title: String
+    let targetValue: Int
+    let currentValue: Int
+    let isCompleted: Bool
+    
+    var body: some View {
+        HStack(spacing: AppTheme.Spacing.medium) {
+            // Icon
+            Image(systemName: "target")
+                .font(.title2)
+                .foregroundColor(AppTheme.Colors.accent)
+                .frame(width: AppTheme.Layout.minTapTarget, height: AppTheme.Layout.minTapTarget)
+                .accessibilityHidden(true)
+            
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xxSmall) {
+                Text(title)
+                    .font(AppTheme.Typography.headline)
+                    .foregroundColor(AppTheme.Colors.text)
+                
+                Text("Goal: \(targetValue)")
+                    .font(AppTheme.Typography.caption)
+                    .foregroundColor(AppTheme.Colors.textSecondary)
+            }
+            
+            Spacer()
+            
+            // Status indicator
+            if isCompleted {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.title2)
+                    .foregroundColor(AppTheme.Colors.success)
+                    .accessibilityLabel("Completed")
+            } else {
+                Text("\(currentValue)")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(AppTheme.Colors.text)
+                    .accessibilityLabel("Progress: \(currentValue) of \(targetValue)")
+            }
+        }
+        .padding(AppTheme.Spacing.medium)
+        .background(AppTheme.Colors.cardBackground)
+        .cornerRadius(AppTheme.CornerRadius.medium)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+// MARK: - Error View
+
+/// Error state view with retry action
+struct ErrorView: View {
+    let title: String
+    let message: String
+    var retryAction: (() -> Void)?
+    
+    init(title: String = "Something Went Wrong", message: String, retryAction: (() -> Void)? = nil) {
+        self.title = title
+        self.message = message
+        self.retryAction = retryAction
+    }
+    
+    var body: some View {
+        VStack(spacing: AppTheme.Spacing.large) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.system(size: 60))
+                .foregroundColor(AppTheme.Colors.error)
+                .padding(.bottom, AppTheme.Spacing.xSmall)
+            
+            VStack(spacing: AppTheme.Spacing.xSmall) {
+                Text(title)
+                    .font(AppTheme.Typography.title3)
+                    .foregroundColor(AppTheme.Colors.text)
+                    .multilineTextAlignment(.center)
+                
+                Text(message)
+                    .font(AppTheme.Typography.body)
+                    .foregroundColor(AppTheme.Colors.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, AppTheme.Spacing.xLarge)
+            }
+            
+            if let retryAction = retryAction {
+                PrimaryButton("Try Again", icon: "arrow.clockwise", action: retryAction)
+                    .padding(.horizontal, AppTheme.Spacing.xxLarge)
+                    .padding(.top, AppTheme.Spacing.small)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(AppTheme.Colors.background)
+    }
+}
+
 // MARK: - Previews
 
 #Preview("Buttons") {
@@ -345,5 +534,29 @@ struct ChoreRow: View {
 
 #Preview("Loading") {
     LoadingView(message: "Loading chores...")
+}
+
+#Preview("Progress Ring") {
+    VStack(spacing: 40) {
+        ProgressRing(progress: 0.0)
+        ProgressRing(progress: 0.65)
+        ProgressRing(progress: 1.0)
+    }
+    .padding()
+}
+
+#Preview("Stats Card") {
+    HStack(spacing: 16) {
+        StatsCard(icon: "checkmark.circle.fill", value: "8", label: "Completed")
+        StatsCard(icon: "clock", value: "3", label: "Pending", color: .orange)
+    }
+    .padding()
+}
+
+#Preview("Error View") {
+    ErrorView(
+        message: "Unable to load your data. Please check your connection and try again.",
+        retryAction: {}
+    )
 }
 

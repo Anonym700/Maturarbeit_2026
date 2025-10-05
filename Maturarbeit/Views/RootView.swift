@@ -2,7 +2,8 @@
 //  RootView.swift
 //  AemtliApp
 //
-//  Created by Privat on 18.06.2025.
+//  Main tab navigation container with design system integration
+//  Updated: October 2025
 //
 
 import SwiftUI
@@ -14,29 +15,25 @@ struct RootView: View {
         TabView {
             DashboardView()
                 .tabItem {
-                    Image(systemName: "house")
-                    Text("Home")
+                    Label("Home", systemImage: "house.fill")
                 }
             
-            ChoresView()
+            ChoresView_Refactored()
                 .tabItem {
-                    Image(systemName: "checkmark.circle")
-                    Text("Tasks")
+                    Label("Tasks", systemImage: "checkmark.circle.fill")
                 }
             
             FamilyView()
                 .tabItem {
-                    Image(systemName: "person.3")
-                    Text("Family")
+                    Label("Family", systemImage: "person.3.fill")
                 }
             
             SettingsView()
                 .tabItem {
-                    Image(systemName: "gearshape")
-                    Text("Settings")
+                    Label("Settings", systemImage: "gearshape.fill")
                 }
         }
-        .accentColor(.purple)
+        .tint(AppTheme.Colors.accent)
         .environmentObject(appState)
     }
 }

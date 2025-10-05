@@ -2,72 +2,129 @@
 //  SettingsView.swift
 //  AemtliApp
 //
-//  Created by Privat on 18.06.2025.
+//  Refactored with complete design system integration
+//  Updated: October 2025
 //
 
 import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var appState: AppState
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 24) {
-                VStack(spacing: 16) {
-                    Text("App Settings")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+            ScrollView {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.xLarge) {
+                    // App Settings Section
+                    appSettingsSection
                     
-                    VStack(spacing: 12) {
-                        SettingRow(icon: "paintbrush", title: "Theme", value: "Dark")
-                        SettingRow(icon: "bell", title: "Notifications", value: "On")
-                        SettingRow(icon: "hand.raised", title: "Privacy", value: "Standard")
-                        SettingRow(icon: "questionmark.circle", title: "Help & Support")
-                    }
+                    // About Section
+                    aboutSection
+                    
+                    // Version Info
+                    versionInfo
                 }
-                
-                VStack(spacing: 12) {
-                    Image(systemName: "info.circle")
-                        .font(.system(size: 32))
-                        .foregroundColor(.blue)
-                    
-                    Text("About AemtliApp")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                    
-                    Text("A simple family chores app to help manage daily tasks and responsibilities.")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
-                }
-                .padding()
-                .background(Color(red: 32/255, green: 32/255, blue: 36/255))
-                .cornerRadius(16)
-                
-                Spacer()
+                .padding(AppTheme.Spacing.medium)
+                .padding(.bottom, AppTheme.Spacing.xLarge)
             }
-            .padding()
-            .background(Color.black.ignoresSafeArea())
+            .background(AppTheme.Colors.background.ignoresSafeArea())
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if let currentUser = appState.currentUser {
-                        Text(currentUser.role.displayLabel)
-                            .font(.caption)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color.purple)
-                            .foregroundColor(.white)
-                            .cornerRadius(8)
+                        RoleBadge(role: currentUser.role.displayLabel)
                     }
                 }
             }
         }
     }
+    
+    // MARK: - App Settings Section
+    
+    private var appSettingsSection: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
+            Text("App Settings")
+                .font(AppTheme.Typography.headline)
+                .foregroundColor(AppTheme.Colors.text)
+                .accessibilityAddTraits(.isHeader)
+            
+            VStack(spacing: AppTheme.Spacing.small) {
+                SettingRow(
+                    icon: "paintbrush.fill",
+                    title: "Theme",
+                    value: colorScheme == .dark ? "Dark" : "Light"
+                )
+                
+                SettingRow(
+                    icon: "bell.fill",
+                    title: "Notifications",
+                    value: "On"
+                )
+                
+                SettingRow(
+                    icon: "hand.raised.fill",
+                    title: "Privacy",
+                    value: "Standard"
+                )
+                
+                SettingRow(
+                    icon: "questionmark.circle.fill",
+                    title: "Help & Support"
+                )
+            }
+        }
+    }
+    
+    // MARK: - About Section
+    
+    private var aboutSection: some View {
+        VStack(spacing: AppTheme.Spacing.medium) {
+            Image(systemName: "info.circle.fill")
+                .font(.system(size: 48))
+                .foregroundColor(AppTheme.Colors.accent)
+                .accessibilityHidden(true)
+            
+            VStack(spacing: AppTheme.Spacing.xSmall) {
+                Text("About AemtliApp")
+                    .font(AppTheme.Typography.headline)
+                    .foregroundColor(AppTheme.Colors.text)
+                
+                Text("A simple family chores app to help manage daily tasks and responsibilities. Built with SwiftUI for iOS 17+.")
+                    .font(AppTheme.Typography.body)
+                    .foregroundColor(AppTheme.Colors.textSecondary)
+                    .multilineTextAlignment(.center)
+            }
+        }
+        .padding(AppTheme.Spacing.large)
+        .frame(maxWidth: .infinity)
+        .background(AppTheme.Colors.cardBackground)
+        .cornerRadius(AppTheme.CornerRadius.medium)
+        .accessibilityElement(children: .combine)
+    }
+    
+    // MARK: - Version Info
+    
+    private var versionInfo: some View {
+        HStack {
+            Spacer()
+            VStack(spacing: AppTheme.Spacing.xxSmall) {
+                Text("Version 1.0.0")
+                    .font(AppTheme.Typography.caption)
+                    .foregroundColor(AppTheme.Colors.textTertiary)
+                
+                Text("© 2025 AemtliApp")
+                    .font(AppTheme.Typography.caption2)
+                    .foregroundColor(AppTheme.Colors.textTertiary)
+            }
+            Spacer()
+        }
+        .accessibilityElement(children: .combine)
+    }
 }
+
+// MARK: - Setting Row Component
 
 struct SettingRow: View {
     let icon: String
@@ -81,31 +138,55 @@ struct SettingRow: View {
     }
     
     var body: some View {
-        HStack {
+        HStack(spacing: AppTheme.Spacing.medium) {
+            // Icon
             Image(systemName: icon)
-                .foregroundColor(.purple)
-                .font(.title2)
-                .frame(width: 30)
+                .foregroundColor(AppTheme.Colors.accent)
+                .font(.title3)
+                .frame(width: 32)
+                .accessibilityHidden(true)
             
+            // Title
             Text(title)
-                .font(.body)
-                .foregroundColor(.white)
+                .font(AppTheme.Typography.body)
+                .foregroundColor(AppTheme.Colors.text)
             
             Spacer()
             
-            if let value = value {
-                Text(value)
+            // Value & Chevron
+            HStack(spacing: AppTheme.Spacing.xxSmall) {
+                if let value = value {
+                    Text(value)
+                        .font(AppTheme.Typography.subheadline)
+                        .foregroundColor(AppTheme.Colors.textSecondary)
+                }
+                
+                Image(systemName: "chevron.right")
                     .font(.caption)
-                    .foregroundColor(.gray)
+                    .foregroundColor(AppTheme.Colors.textTertiary)
             }
         }
-        .padding()
-        .background(Color(red: 32/255, green: 32/255, blue: 36/255))
-        .cornerRadius(12)
+        .padding(AppTheme.Spacing.medium)
+        .frame(minHeight: AppTheme.Layout.minTapTarget)
+        .background(AppTheme.Colors.cardBackground)
+        .cornerRadius(AppTheme.CornerRadius.medium)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(value != nil ? "\(title), \(value!)" : title)
+        .accessibilityHint("Double tap to open")
+        .accessibilityAddTraits(.isButton)
     }
 }
+
+// MARK: - Previews
 
 #Preview {
     SettingsView()
         .environmentObject(AppState())
+}
+
+#Preview("Dark Mode") {
+    SettingsView()
+        .environmentObject(AppState())
+        .preferredColorScheme(.dark)
 }
