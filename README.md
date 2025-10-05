@@ -127,28 +127,32 @@ graph TD
 
 ```
 Maturarbeit_2026/
-├── Models/                    # Data models
-│   ├── Chore.swift           # Chore entity
-│   ├── FamilyMember.swift    # User entity
-│   └── FamilyRole.swift      # Role enum (Parent/Child)
-├── ViewModels/
-│   └── AppState.swift        # Main app state (@MainActor)
-├── Store/                     # Data persistence layer
-│   ├── ChoreStore.swift      # Protocol for CRUD operations
-│   └── InMemoryStore.swift   # In-memory implementation
-├── Views/                     # SwiftUI views
-│   ├── RootView.swift        # TabView container
-│   ├── DashboardView.swift   # Progress visualization
-│   ├── ChoresView.swift      # Chore list
-│   ├── FamilyView.swift      # Family management
-│   └── SettingsView.swift    # Settings screen
-├── DesignSystem/             # UI design system
-│   ├── AppTheme.swift        # Design tokens
-│   └── DesignSystem.swift    # Reusable components
-├── Docs/                      # Documentation
-│   └── UI-Revamp-Notes.md    # UI improvement details
-├── Assets.xcassets/          # App assets
-└── MaturarbeitApp.swift      # App entry point
+├── Maturarbeit.xcodeproj/     # Xcode project file
+├── Docs/                       # Documentation
+│   └── UI-Revamp-Notes.md     # UI improvement details
+├── README.md                   # This file
+└── Maturarbeit/               # Source code folder
+    ├── MaturarbeitApp.swift   # App entry point
+    ├── Models/                # Data models
+    │   ├── Chore.swift        # Chore entity
+    │   ├── FamilyMember.swift # User entity
+    │   └── FamilyRole.swift   # Role enum (Parent/Child)
+    ├── ViewModels/
+    │   └── AppState.swift     # Main app state (@MainActor)
+    ├── Store/                 # Data persistence layer
+    │   ├── ChoreStore.swift   # Protocol for CRUD operations
+    │   └── InMemoryStore.swift # In-memory implementation
+    ├── Views/                 # SwiftUI views
+    │   ├── RootView.swift     # TabView container
+    │   ├── DashboardView.swift # Progress visualization
+    │   ├── ChoresView.swift   # Chore list
+    │   ├── FamilyView.swift   # Family management
+    │   └── SettingsView.swift # Settings screen
+    ├── DesignSystem/          # UI design system
+    │   ├── AppTheme.swift     # Design tokens
+    │   └── DesignSystem.swift # Reusable components
+    ├── Assets.xcassets/       # App assets
+    └── Preview Content/       # Preview assets
 ```
 
 ---
