@@ -35,21 +35,6 @@
 			path = Maturarbeit;
 			sourceTree = "<group>";
 		};
-		801998702E03076900B81CC8 /* MaturarbeitTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = MaturarbeitTests;
-			sourceTree = "<group>";
-		};
-		8019987A2E03076900B81CC8 /* MaturarbeitUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = MaturarbeitUITests;
-			sourceTree = "<group>";
-		};
-		80D6E9D52E92D75B00594F0C /* Maturarbeit 2 */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Maturarbeit 2";
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -81,9 +66,6 @@
 			isa = PBXGroup;
 			children = (
 				8019985F2E03076800B81CC8 /* Maturarbeit */,
-				80D6E9D52E92D75B00594F0C /* Maturarbeit 2 */,
-				801998702E03076900B81CC8 /* MaturarbeitTests */,
-				8019987A2E03076900B81CC8 /* MaturarbeitUITests */,
 				8019985E2E03076800B81CC8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -115,7 +97,6 @@
 			);
 			fileSystemSynchronizedGroups = (
 				8019985F2E03076800B81CC8 /* Maturarbeit */,
-				80D6E9D52E92D75B00594F0C /* Maturarbeit 2 */,
 			);
 			name = Maturarbeit;
 			packageProductDependencies = (
@@ -137,9 +118,6 @@
 			dependencies = (
 				8019986F2E03076900B81CC8 /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				801998702E03076900B81CC8 /* MaturarbeitTests */,
-			);
 			name = MaturarbeitTests;
 			packageProductDependencies = (
 			);
@@ -159,9 +137,6 @@
 			);
 			dependencies = (
 				801998792E03076900B81CC8 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				8019987A2E03076900B81CC8 /* MaturarbeitUITests */,
 			);
 			name = MaturarbeitUITests;
 			packageProductDependencies = (

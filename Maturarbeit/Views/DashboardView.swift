@@ -1,4 +1,4 @@
-/
+
 //  DashboardView.swift
 //  AemtliApp
 //
@@ -111,8 +111,6 @@ struct TaskRowView: View {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.title2)
                     .foregroundColor(.green)
-                    .background(Color.blue)
-                    .clipShape(Circle())
             } else {
                 Text("0")
                     .font(.title2)

@@ -105,7 +105,6 @@ struct FloatingActionButton: View {
         }
         .accessibilityLabel(accessibilityLabel)
         .scaleEffect(1.0)
-        .animation(AppTheme.Animation.spring, value: action)
     }
 }
 
@@ -159,7 +158,7 @@ struct ChorePointsBadge: View {
                 .fontWeight(.semibold)
         }
         .padding(.horizontal, AppTheme.Spacing.xSmall)
-        .padding(.vertical: AppTheme.Spacing.xxSmall)
+        .padding(.vertical, AppTheme.Spacing.xxSmall)
         .background(AppTheme.Colors.accent.opacity(0.15))
         .foregroundColor(AppTheme.Colors.accent)
         .cornerRadius(AppTheme.CornerRadius.small)
