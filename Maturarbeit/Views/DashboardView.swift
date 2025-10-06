@@ -70,23 +70,6 @@ struct DashboardView: View {
             ProgressRing(progress: progressPercentage, size: 220)
                 .padding(.vertical, AppTheme.Spacing.medium)
             
-            // Statistics Cards
-            HStack(spacing: AppTheme.Spacing.medium) {
-                StatsCard(
-                    icon: "checkmark.circle.fill",
-                    value: "\(completedCount)",
-                    label: "Completed",
-                    color: AppTheme.Colors.success
-                )
-                
-                StatsCard(
-                    icon: "clock.fill",
-                    value: "\(pendingCount)",
-                    label: "Pending",
-                    color: AppTheme.Colors.warning
-                )
-            }
-            
             // Today's Tasks Section
             if !appState.chores.isEmpty {
                 todayTasksSection
@@ -132,14 +115,6 @@ struct DashboardView: View {
         let totalChores = Double(appState.chores.count)
         let completedChores = Double(appState.chores.filter { $0.isDone }.count)
         return totalChores > 0 ? completedChores / totalChores : 0
-    }
-    
-    private var completedCount: Int {
-        appState.chores.filter { $0.isDone }.count
-    }
-    
-    private var pendingCount: Int {
-        appState.chores.filter { !$0.isDone }.count
     }
 }
 

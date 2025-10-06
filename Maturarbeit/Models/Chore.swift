@@ -7,20 +7,30 @@
 
 import Foundation
 
-struct Chore: Identifiable {
+struct Chore: Identifiable, Hashable {
     let id: UUID
     var title: String
-    var points: Int
     var assignedTo: UUID?
     var dueDate: Date?
     var isDone: Bool
+    var recurrence: ChoreRecurrence
+    var createdAt: Date
     
-    init(id: UUID = UUID(), title: String, points: Int, assignedTo: UUID? = nil, dueDate: Date? = nil, isDone: Bool = false) {
+    init(
+        id: UUID = UUID(),
+        title: String,
+        assignedTo: UUID? = nil,
+        dueDate: Date? = nil,
+        isDone: Bool = false,
+        recurrence: ChoreRecurrence = .once,
+        createdAt: Date = Date()
+    ) {
         self.id = id
         self.title = title
-        self.points = points
         self.assignedTo = assignedTo
         self.dueDate = dueDate
         self.isDone = isDone
+        self.recurrence = recurrence
+        self.createdAt = createdAt
     }
 }

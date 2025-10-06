@@ -128,43 +128,32 @@ struct CardView<Content: View>: View {
 
 // MARK: - Badges
 
-/// Role badge (Parent/Child) displayed in navigation bar
+/// Role badge (Parent/Child) displayed in navigation bar - informational, not interactive
 struct RoleBadge: View {
     let role: String
     
     var body: some View {
-        Text(role)
-            .font(AppTheme.Typography.caption)
-            .fontWeight(.semibold)
-            .padding(.horizontal, AppTheme.Spacing.small)
-            .padding(.vertical, AppTheme.Spacing.xxSmall)
-            .background(AppTheme.Colors.accent)
-            .foregroundColor(.white)
-            .cornerRadius(AppTheme.CornerRadius.small)
-            .accessibilityLabel("\(role) user")
+        HStack(spacing: AppTheme.Spacing.xxSmall) {
+            Image(systemName: "person.circle.fill")
+                .font(.caption2)
+            Text(role)
+                .font(AppTheme.Typography.caption)
+                .fontWeight(.medium)
+        }
+        .padding(.horizontal, AppTheme.Spacing.small)
+        .padding(.vertical, AppTheme.Spacing.xxSmall)
+        .foregroundColor(AppTheme.Colors.textSecondary)
+        .background(AppTheme.Colors.tertiaryBackground)
+        .cornerRadius(AppTheme.CornerRadius.small)
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.CornerRadius.small)
+                .stroke(AppTheme.Colors.separator, lineWidth: 0.5)
+        )
+        .accessibilityLabel("\(role) user")
+        .allowsHitTesting(false)
     }
 }
 
-/// Points badge showing chore point value
-struct ChorePointsBadge: View {
-    let points: Int
-    
-    var body: some View {
-        HStack(spacing: AppTheme.Spacing.xxSmall) {
-            Image(systemName: "star.fill")
-                .font(.caption2)
-            Text("\(points) pts")
-                .font(AppTheme.Typography.caption)
-                .fontWeight(.semibold)
-        }
-        .padding(.horizontal, AppTheme.Spacing.xSmall)
-        .padding(.vertical, AppTheme.Spacing.xxSmall)
-        .background(AppTheme.Colors.accent.opacity(0.15))
-        .foregroundColor(AppTheme.Colors.accent)
-        .cornerRadius(AppTheme.CornerRadius.small)
-        .accessibilityLabel("\(points) points")
-    }
-}
 
 // MARK: - Empty States
 
@@ -300,16 +289,10 @@ struct ChoreRow: View {
                     .foregroundColor(AppTheme.Colors.text)
                     .strikethrough(chore.isDone, color: AppTheme.Colors.textSecondary)
                 
-                HStack(spacing: AppTheme.Spacing.xSmall) {
-                    ChorePointsBadge(points: chore.points)
-                    
-                    if let memberName = memberName {
-                        Text("•")
-                            .foregroundColor(AppTheme.Colors.textSecondary)
-                        Text(memberName)
-                            .font(AppTheme.Typography.caption)
-                            .foregroundColor(AppTheme.Colors.textSecondary)
-                    }
+                if let memberName = memberName {
+                    Text(memberName)
+                        .font(AppTheme.Typography.caption)
+                        .foregroundColor(AppTheme.Colors.textSecondary)
                 }
             }
             

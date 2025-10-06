@@ -10,6 +10,7 @@ import SwiftUI
 
 struct RootView: View {
     @StateObject private var appState = AppState()
+    @StateObject private var themeManager = ThemeManager.shared
     
     var body: some View {
         TabView {
@@ -35,6 +36,8 @@ struct RootView: View {
         }
         .tint(AppTheme.Colors.accent)
         .environmentObject(appState)
+        .environmentObject(themeManager)
+        .preferredColorScheme(themeManager.getColorScheme())
     }
 }
 

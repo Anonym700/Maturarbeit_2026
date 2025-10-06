@@ -11,7 +11,6 @@ struct ChoresView: View {
     @EnvironmentObject var appState: AppState
     @State private var showingAddChore = false
     @State private var newChoreTitle = ""
-    @State private var newChorePoints = 5
     @State private var selectedMemberID: UUID?
     
     var body: some View {
@@ -57,18 +56,16 @@ struct ChoresView: View {
             .sheet(isPresented: $showingAddChore) {
                 AddChoreView(
                     title: $newChoreTitle,
-                    points: $newChorePoints,
                     selectedMemberID: $selectedMemberID,
                     members: appState.members
                 ) {
                     Task {
                         await appState.addChore(
                             title: newChoreTitle,
-                            points: newChorePoints,
-                            assignedTo: selectedMemberID
+                            assignedTo: selectedMemberID,
+                            recurrence: .daily
                         )
                         newChoreTitle = ""
-                        newChorePoints = 5
                         selectedMemberID = nil
                         showingAddChore = false
                     }
@@ -109,16 +106,10 @@ struct ChoreRowView: View {
                     .foregroundColor(.white)
                     .strikethrough(chore.isDone)
                 
-                HStack {
-                    Text("\(chore.points) points")
+                if let assignedTo = chore.assignedTo {
+                    Text(appState.getMemberName(for: assignedTo))
                         .font(.caption)
-                        .foregroundColor(.purple)
-                    
-                    if let assignedTo = chore.assignedTo {
-                        Text("• \(appState.getMemberName(for: assignedTo))")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
+                        .foregroundColor(.gray)
                 }
             }
             
@@ -131,7 +122,6 @@ struct ChoreRowView: View {
 
 struct AddChoreView: View {
     @Binding var title: String
-    @Binding var points: Int
     @Binding var selectedMemberID: UUID?
     let members: [FamilyMember]
     let onSave: () -> Void
@@ -142,8 +132,6 @@ struct AddChoreView: View {
             Form {
                 Section("Chore Details") {
                     TextField("Chore title", text: $title)
-                    
-                    Stepper("Points: \(points)", value: $points, in: 1...20)
                 }
                 
                 Section("Assignment") {
