@@ -14,6 +14,7 @@ struct ChoresView_Refactored: View {
     @State private var newChoreTitle = ""
     @State private var selectedMemberID: UUID?
     @State private var selectedRecurrence: ChoreRecurrence = .daily
+    @State private var deadline: Date?
     @State private var editingChore: Chore?
     
     var body: some View {
@@ -21,7 +22,7 @@ struct ChoresView_Refactored: View {
             ZStack(alignment: .bottom) {
                 // Main content
                 Group {
-                    if appState.chores.isEmpty {
+                    if filteredChores.isEmpty {
                         emptyStateView
                     } else {
                         choresList
@@ -54,13 +55,15 @@ struct ChoresView_Refactored: View {
                     title: $newChoreTitle,
                     selectedMemberID: $selectedMemberID,
                     selectedRecurrence: $selectedRecurrence,
+                    deadline: $deadline,
                     members: appState.members
                 ) {
                     Task {
                         await appState.addChore(
                             title: newChoreTitle,
                             assignedTo: selectedMemberID,
-                            recurrence: selectedRecurrence
+                            recurrence: selectedRecurrence,
+                            deadline: deadline
                         )
                         resetForm()
                         showingAddChore = false
@@ -101,7 +104,7 @@ struct ChoresView_Refactored: View {
     private var choresList: some View {
         ScrollView {
             LazyVStack(spacing: AppTheme.Spacing.small) {
-                ForEach(appState.chores) { chore in
+                ForEach(filteredChores) { chore in
                     ChoreRowWithActions(
                         chore: chore,
                         memberName: chore.assignedTo != nil ? appState.getMemberName(for: chore.assignedTo!) : nil,
@@ -128,12 +131,25 @@ struct ChoresView_Refactored: View {
         }
     }
     
+    // MARK: - Filtered Chores
+    
+    /// Filter chores: Children only see their own tasks, Parents see all
+    private var filteredChores: [Chore] {
+        if appState.isCurrentUserParent {
+            return appState.chores
+        } else {
+            // Children only see tasks assigned to them
+            return appState.chores.filter { $0.assignedTo == appState.currentUserID }
+        }
+    }
+    
     // MARK: - Helper Methods
     
     private func resetForm() {
         newChoreTitle = ""
         selectedMemberID = nil
         selectedRecurrence = .daily
+        deadline = nil
     }
 }
 
@@ -167,8 +183,24 @@ struct ChoreRowWithActions: View {
                     .strikethrough(chore.isDone, color: AppTheme.Colors.textSecondary)
                 
                 HStack(spacing: AppTheme.Spacing.xSmall) {
+                    // Countdown Badge (if deadline exists)
+                    if chore.hasDeadline {
+                        HStack(spacing: 4) {
+                            Image(systemName: "clock.fill")
+                                .font(.caption2)
+                            Text(chore.deadlineCountdown)
+                                .font(AppTheme.Typography.caption)
+                                .fontWeight(.medium)
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(chore.isOverdue ? AppTheme.Colors.error : AppTheme.Colors.warning)
+                        .cornerRadius(6)
+                    }
+                    
                     // Recurrence Badge
-                    if chore.recurrence != .once {
+                    if chore.recurrence != .once && !chore.hasDeadline {
                         HStack(spacing: 2) {
                             Image(systemName: chore.recurrence.icon)
                                 .font(.caption2)
@@ -180,7 +212,7 @@ struct ChoreRowWithActions: View {
                     
                     // Member assignment
                     if let memberName = memberName {
-                        if chore.recurrence != .once {
+                        if chore.recurrence != .once || chore.hasDeadline {
                             Text("•")
                                 .foregroundColor(AppTheme.Colors.textSecondary)
                         }
@@ -233,11 +265,14 @@ struct AddChoreView_Refactored: View {
     @Binding var title: String
     @Binding var selectedMemberID: UUID?
     @Binding var selectedRecurrence: ChoreRecurrence
+    @Binding var deadline: Date?
     let members: [FamilyMember]
     let onSave: () -> Void
     
     @Environment(\.dismiss) private var dismiss
     @FocusState private var titleFieldIsFocused: Bool
+    @State private var hasDeadline = false
+    @State private var deadlineDate = Date().addingTimeInterval(7 * 24 * 60 * 60) // 1 week from now
     
     // Validation: Check if all required fields are filled
     private var isFormValid: Bool {
@@ -282,6 +317,26 @@ struct AddChoreView_Refactored: View {
                 }
                 
                 Section {
+                    Toggle("Deadline festlegen", isOn: $hasDeadline)
+                        .tint(AppTheme.Colors.accent)
+                    
+                    if hasDeadline {
+                        DatePicker("Frist bis", 
+                                 selection: $deadlineDate,
+                                 in: Date()...,
+                                 displayedComponents: [.date, .hourAndMinute])
+                    }
+                } header: {
+                    Text("Deadline (Countdown)")
+                } footer: {
+                    if hasDeadline {
+                        Text("Die Aufgabe muss bis zu diesem Zeitpunkt erledigt werden")
+                            .font(AppTheme.Typography.caption)
+                            .foregroundColor(AppTheme.Colors.textSecondary)
+                    }
+                }
+                
+                Section {
                     Picker("Assign to", selection: $selectedMemberID) {
                         Text("Select a member").tag(nil as UUID?)
                         ForEach(members) { member in
@@ -319,6 +374,8 @@ struct AddChoreView_Refactored: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
+                        // Set deadline based on toggle
+                        deadline = hasDeadline ? deadlineDate : nil
                         onSave()
                     }
                     .disabled(!isFormValid)

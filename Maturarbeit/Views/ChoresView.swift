@@ -12,6 +12,7 @@ struct ChoresView: View {
     @State private var showingAddChore = false
     @State private var newChoreTitle = ""
     @State private var selectedMemberID: UUID?
+    @State private var deadline: Date?
     
     var body: some View {
         NavigationView {
@@ -57,16 +58,19 @@ struct ChoresView: View {
                 AddChoreView(
                     title: $newChoreTitle,
                     selectedMemberID: $selectedMemberID,
+                    deadline: $deadline,
                     members: appState.members
                 ) {
                     Task {
                         await appState.addChore(
                             title: newChoreTitle,
                             assignedTo: selectedMemberID,
-                            recurrence: .daily
+                            recurrence: .daily,
+                            deadline: deadline
                         )
                         newChoreTitle = ""
                         selectedMemberID = nil
+                        deadline = nil
                         showingAddChore = false
                     }
                 }
@@ -106,10 +110,27 @@ struct ChoreRowView: View {
                     .foregroundColor(.white)
                     .strikethrough(chore.isDone)
                 
-                if let assignedTo = chore.assignedTo {
-                    Text(appState.getMemberName(for: assignedTo))
-                        .font(.caption)
-                        .foregroundColor(.gray)
+                HStack(spacing: 8) {
+                    if let assignedTo = chore.assignedTo {
+                        Text(appState.getMemberName(for: assignedTo))
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                    
+                    // Show deadline countdown if present
+                    if chore.hasDeadline {
+                        HStack(spacing: 4) {
+                            Image(systemName: "clock")
+                                .font(.caption2)
+                            Text(chore.deadlineCountdown)
+                                .font(.caption)
+                        }
+                        .foregroundColor(chore.isOverdue ? .red : .orange)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(chore.isOverdue ? Color.red.opacity(0.2) : Color.orange.opacity(0.2))
+                        .cornerRadius(4)
+                    }
                 }
             }
             
@@ -123,6 +144,9 @@ struct ChoreRowView: View {
 struct AddChoreView: View {
     @Binding var title: String
     @Binding var selectedMemberID: UUID?
+    @Binding var deadline: Date?
+    @State private var hasDeadline = false
+    @State private var deadlineDate = Date().addingTimeInterval(7 * 24 * 60 * 60) // 1 week from now
     let members: [FamilyMember]
     let onSave: () -> Void
     @Environment(\.dismiss) private var dismiss
@@ -142,6 +166,22 @@ struct AddChoreView: View {
                         }
                     }
                 }
+                
+                Section("Deadline (Countdown)") {
+                    Toggle("Deadline festlegen", isOn: $hasDeadline)
+                        .tint(.purple)
+                    
+                    if hasDeadline {
+                        DatePicker("Frist bis", 
+                                 selection: $deadlineDate,
+                                 in: Date()...,
+                                 displayedComponents: [.date, .hourAndMinute])
+                        
+                        Text("Die Aufgabe muss bis zu diesem Zeitpunkt erledigt werden")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                }
             }
             .navigationTitle("Add Chore")
             .navigationBarTitleDisplayMode(.inline)
@@ -154,6 +194,7 @@ struct AddChoreView: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
+                        deadline = hasDeadline ? deadlineDate : nil
                         onSave()
                     }
                     .disabled(title.isEmpty)

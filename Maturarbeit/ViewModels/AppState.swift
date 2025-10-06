@@ -32,13 +32,14 @@ class AppState: ObservableObject {
     init() {
         // Initialize with default members FIRST
         let parent = FamilyMember(name: "Parent 1", role: .parent)
-        let child = FamilyMember(name: "Child 1", role: .child)
+        let child1 = FamilyMember(name: "Anna", role: .child)
+        let child2 = FamilyMember(name: "Max", role: .child)
         
-        self.members = [parent, child]
+        self.members = [parent, child1, child2]
         self.currentUserID = parent.id
         
-        // Initialize store with child ID for default tasks
-        self.store = InMemoryStore(defaultAssigneeID: child.id)
+        // Initialize store with first child ID for default tasks
+        self.store = InMemoryStore(defaultAssigneeID: child1.id)
         
         // SYNCHRONOUS initial load - no async needed for in-memory data
         Task { @MainActor in
@@ -64,8 +65,8 @@ class AppState: ObservableObject {
         chores = await store.loadChores()
     }
     
-    func addChore(title: String, assignedTo: UUID?, recurrence: ChoreRecurrence) async {
-        let newChore = Chore(title: title, assignedTo: assignedTo, recurrence: recurrence)
+    func addChore(title: String, assignedTo: UUID?, recurrence: ChoreRecurrence, deadline: Date? = nil) async {
+        let newChore = Chore(title: title, assignedTo: assignedTo, recurrence: recurrence, deadline: deadline)
         await store.saveChore(newChore)
         await loadChores()
     }
