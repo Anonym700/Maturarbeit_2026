@@ -134,22 +134,25 @@ struct RoleBadge: View {
     
     var body: some View {
         HStack(spacing: AppTheme.Spacing.xxSmall) {
-            Image(systemName: "person.circle.fill")
-                .font(.caption2)
+            // Subtle indicator dot instead of person icon
+            Circle()
+                .fill(AppTheme.Colors.accent.opacity(0.8))
+                .frame(width: 6, height: 6)
+            
             Text(role)
                 .font(AppTheme.Typography.caption)
                 .fontWeight(.medium)
+                .foregroundColor(AppTheme.Colors.textSecondary)
         }
         .padding(.horizontal, AppTheme.Spacing.small)
-        .padding(.vertical, AppTheme.Spacing.xxSmall)
-        .foregroundColor(AppTheme.Colors.textSecondary)
-        .background(AppTheme.Colors.tertiaryBackground)
-        .cornerRadius(AppTheme.CornerRadius.small)
-        .overlay(
-            RoundedRectangle(cornerRadius: AppTheme.CornerRadius.small)
-                .stroke(AppTheme.Colors.separator, lineWidth: 0.5)
+        .padding(.vertical, 6)
+        .background(
+            // Very subtle background - almost transparent
+            AppTheme.Colors.accent.opacity(0.08)
         )
-        .accessibilityLabel("\(role) user")
+        .cornerRadius(AppTheme.CornerRadius.large)
+        .accessibilityLabel("Current user: \(role)")
+        .accessibilityAddTraits(.isStaticText)
         .allowsHitTesting(false)
     }
 }
