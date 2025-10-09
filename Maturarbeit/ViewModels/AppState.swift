@@ -10,12 +10,33 @@ import SwiftUI
 
 @MainActor
 class AppState: ObservableObject {
-    @Published var members: [FamilyMember]
-    @Published var currentUserID: UUID
+    @Published var members: [FamilyMember] = []
+    @Published var currentUserID: UUID?
     @Published var chores: [Chore] = []
     
-    private let store: ChoreStore
+    private let store: CloudKitStore
     private var midnightResetTimer: Timer?
+    
+    // Default members with FIXED UUIDs for consistency
+    private var defaultMembers: [FamilyMember] {
+        [
+            FamilyMember(
+                id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
+                name: "Parent 1",
+                role: .parent
+            ),
+            FamilyMember(
+                id: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!,
+                name: "Anna",
+                role: .child
+            ),
+            FamilyMember(
+                id: UUID(uuidString: "00000000-0000-0000-0000-000000000003")!,
+                name: "Max",
+                role: .child
+            )
+        ]
+    }
     
     // Default tasks that will be loaded each day after reset
     private var defaultTasks: [Chore] {
@@ -30,18 +51,22 @@ class AppState: ObservableObject {
     }
     
     init() {
-        // Initialize with default members FIRST
-        let parent = FamilyMember(name: "Parent 1", role: .parent)
-        let child1 = FamilyMember(name: "Anna", role: .child)
-        let child2 = FamilyMember(name: "Max", role: .child)
-        
-        self.members = [parent, child1, child2]
-        self.currentUserID = parent.id
-        
-        // ✨ Switch to CloudKit Store
+        // Initialize CloudKit Store
         self.store = CloudKitStore()
         
         Task { @MainActor in
+            // Load FamilyMembers from CloudKit first
+            await loadFamilyMembers()
+            
+            // If no members exist, create defaults and save to CloudKit
+            if members.isEmpty {
+                await setupDefaultFamilyMembers()
+            }
+            
+            // Set current user to first parent, or first member
+            self.currentUserID = members.first(where: { $0.role == .parent })?.id ?? members.first?.id
+            
+            // Then load chores and setup reset timer
             await loadChores()
             await checkAndResetIfNeeded()
             setupMidnightResetTimer()
@@ -53,12 +78,47 @@ class AppState: ObservableObject {
     }
     
     var currentUser: FamilyMember? {
-        members.first { $0.id == currentUserID }
+        guard let currentUserID = currentUserID else { return nil }
+        return members.first { $0.id == currentUserID }
     }
     
     var isCurrentUserParent: Bool {
         currentUser?.role == .parent
     }
+    
+    // MARK: - FamilyMember Management
+    
+    func loadFamilyMembers() async {
+        members = await store.loadFamilyMembers()
+        print("📱 Loaded \(members.count) family members from CloudKit")
+    }
+    
+    func setupDefaultFamilyMembers() async {
+        print("🏗️ Setting up default family members in CloudKit...")
+        for member in defaultMembers {
+            await store.saveFamilyMember(member)
+        }
+        await loadFamilyMembers()
+    }
+    
+    func addFamilyMember(name: String, role: FamilyRole) async {
+        let newMember = FamilyMember(name: name, role: role)
+        members.append(newMember)
+        await store.saveFamilyMember(newMember)
+        
+        // Verify save
+        try? await Task.sleep(nanoseconds: 500_000_000)
+        await loadFamilyMembers()
+    }
+    
+    func deleteFamilyMember(_ member: FamilyMember) async {
+        members.removeAll { $0.id == member.id }
+        // Note: We'd need to add delete to CloudKitStore for this
+        // For now, just remove from local array
+        await loadFamilyMembers()
+    }
+    
+    // MARK: - Chore Management
     
     func loadChores() async {
         chores = await store.loadChores()

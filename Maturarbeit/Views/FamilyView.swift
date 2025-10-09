@@ -46,7 +46,10 @@ struct FamilyView: View {
                 .foregroundColor(AppTheme.Colors.text)
                 .accessibilityAddTraits(.isHeader)
             
-            Picker("Select User", selection: $appState.currentUserID) {
+            Picker("Select User", selection: Binding(
+                get: { appState.currentUserID ?? UUID() },
+                set: { appState.currentUserID = $0 }
+            )) {
                 ForEach(appState.members) { member in
                     Text("\(member.name) (\(member.role.displayLabel))")
                         .tag(member.id)
