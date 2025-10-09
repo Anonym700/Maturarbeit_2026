@@ -11,6 +11,7 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var healthChecker: CloudKitHealthChecker
     @Environment(\.colorScheme) var colorScheme
     @AppStorage("notificationsEnabled") private var notificationsEnabled = true
     @State private var showingResetConfirmation = false
@@ -60,30 +61,28 @@ struct SettingsView: View {
                 .font(AppTheme.Typography.headline)
                 .foregroundColor(AppTheme.Colors.text)
             
-            if let healthChecker = try? EnvironmentValues().environmentObject as? CloudKitHealthChecker {
-                HStack(spacing: AppTheme.Spacing.medium) {
-                    Image(systemName: healthChecker.isHealthy ? "checkmark.circle.fill" : "xmark.circle.fill")
-                        .foregroundColor(healthChecker.isHealthy ? .green : .red)
-                        .font(.title3)
-                    
-                    Text(healthChecker.healthMessage)
-                        .font(AppTheme.Typography.body)
-                        .foregroundColor(AppTheme.Colors.text)
-                    
-                    Spacer()
-                    
-                    Button("Re-check") {
-                        Task {
-                            await healthChecker.performHealthCheck()
-                        }
+            HStack(spacing: AppTheme.Spacing.medium) {
+                Image(systemName: healthChecker.isHealthy ? "checkmark.circle.fill" : "xmark.circle.fill")
+                    .foregroundColor(healthChecker.isHealthy ? .green : .red)
+                    .font(.title3)
+                
+                Text(healthChecker.healthMessage)
+                    .font(AppTheme.Typography.body)
+                    .foregroundColor(AppTheme.Colors.text)
+                
+                Spacer()
+                
+                Button("Re-check") {
+                    Task {
+                        await healthChecker.performHealthCheck()
                     }
-                    .font(AppTheme.Typography.caption)
-                    .foregroundColor(AppTheme.Colors.accent)
                 }
-                .padding(AppTheme.Spacing.medium)
-                .background(AppTheme.Colors.cardBackground)
-                .cornerRadius(AppTheme.CornerRadius.medium)
+                .font(AppTheme.Typography.caption)
+                .foregroundColor(AppTheme.Colors.accent)
             }
+            .padding(AppTheme.Spacing.medium)
+            .background(AppTheme.Colors.cardBackground)
+            .cornerRadius(AppTheme.CornerRadius.medium)
         }
     }
     #endif
@@ -463,12 +462,14 @@ struct HelpRow: View {
     SettingsView()
         .environmentObject(AppState())
         .environmentObject(ThemeManager.shared)
+        .environmentObject(CloudKitHealthChecker())
 }
 
 #Preview("Dark Mode") {
     SettingsView()
         .environmentObject(AppState())
         .environmentObject(ThemeManager.shared)
+        .environmentObject(CloudKitHealthChecker())
         .preferredColorScheme(.dark)
 }
 

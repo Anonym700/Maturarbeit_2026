@@ -94,7 +94,7 @@ final class CloudKitManager: ObservableObject {
                 savePolicy: policy
             )
             
-            guard let savedRecord = results.first?.1.get() else {
+            guard let savedRecord = try results.first?.1.get() else {
                 throw CKError(.unknownItem)
             }
             return savedRecord
