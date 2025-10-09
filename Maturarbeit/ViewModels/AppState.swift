@@ -66,24 +66,75 @@ class AppState: ObservableObject {
     
     func addChore(title: String, assignedTo: UUID?, recurrence: ChoreRecurrence, deadline: Date? = nil) async {
         let newChore = Chore(title: title, assignedTo: assignedTo, recurrence: recurrence, deadline: deadline)
+        
+        // Optimistic UI update - add to local list immediately
+        chores.append(newChore)
+        
+        // Save to CloudKit and wait for completion
         await store.saveChore(newChore)
-        await loadChores()
+        
+        // Verify save with retry logic
+        await verifyAndRefresh(expectedID: newChore.id, maxRetries: 5)
     }
     
     func updateChore(_ chore: Chore) async {
+        // Optimistic UI update - update in local list immediately
+        if let index = chores.firstIndex(where: { $0.id == chore.id }) {
+            chores[index] = chore
+        }
+        
+        // Save to CloudKit and wait for completion
         await store.updateChore(chore)
-        await loadChores()
+        
+        // Verify save with retry logic
+        await verifyAndRefresh(expectedID: chore.id, maxRetries: 5)
     }
     
     func toggleChore(_ chore: Chore) async {
         var updatedChore = chore
         updatedChore.isDone.toggle()
+        
+        // Optimistic UI update - toggle in local list immediately
+        if let index = chores.firstIndex(where: { $0.id == chore.id }) {
+            chores[index] = updatedChore
+        }
+        
+        // Save to CloudKit and wait for completion
         await store.updateChore(updatedChore)
-        await loadChores()
+        
+        // Verify save with retry logic
+        await verifyAndRefresh(expectedID: updatedChore.id, maxRetries: 5)
     }
     
     func deleteChore(_ chore: Chore) async {
+        // Optimistic UI update - remove from local list immediately
+        chores.removeAll { $0.id == chore.id }
+        
+        // Delete from CloudKit and wait for completion
         await store.deleteChore(chore)
+        
+        // No need to verify delete - just refresh after delay
+        try? await Task.sleep(nanoseconds: 500_000_000)
+        await loadChores()
+    }
+    
+    /// Verify that a chore exists in CloudKit before refreshing
+    private func verifyAndRefresh(expectedID: UUID, maxRetries: Int) async {
+        for attempt in 1...maxRetries {
+            // Wait a bit before checking
+            try? await Task.sleep(nanoseconds: 300_000_000 * UInt64(attempt)) // Progressive delay: 0.3s, 0.6s, 0.9s...
+            
+            let fetchedChores = await store.loadChores()
+            if fetchedChores.contains(where: { $0.id == expectedID }) {
+                // Found it! Refresh the UI
+                chores = fetchedChores
+                print("✅ Verified chore in CloudKit after \(attempt) attempts")
+                return
+            }
+        }
+        
+        // If we couldn't verify, still do a final refresh
+        print("⚠️ Could not verify chore in CloudKit, doing final refresh")
         await loadChores()
     }
     
