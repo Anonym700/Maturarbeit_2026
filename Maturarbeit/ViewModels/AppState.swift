@@ -38,10 +38,9 @@ class AppState: ObservableObject {
         self.members = [parent, child1, child2]
         self.currentUserID = parent.id
         
-        // Initialize store with first child ID for default tasks
-        self.store = InMemoryStore(defaultAssigneeID: child1.id)
+        // ✨ Switch to CloudKit Store
+        self.store = CloudKitStore()
         
-        // SYNCHRONOUS initial load - no async needed for in-memory data
         Task { @MainActor in
             await loadChores()
             await checkAndResetIfNeeded()

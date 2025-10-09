@@ -21,6 +21,11 @@ struct SettingsView: View {
         NavigationView {
             ScrollView {
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.xLarge) {
+                    #if DEBUG
+                    // CloudKit Health Status (DEBUG only)
+                    cloudKitStatusSection
+                    #endif
+                    
                     // App Settings Section
                     appSettingsSection
                     
@@ -45,6 +50,43 @@ struct SettingsView: View {
             }
         }
     }
+    
+    // MARK: - CloudKit Status Section (DEBUG)
+    
+    #if DEBUG
+    private var cloudKitStatusSection: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
+            Text("CloudKit Status")
+                .font(AppTheme.Typography.headline)
+                .foregroundColor(AppTheme.Colors.text)
+            
+            if let healthChecker = try? EnvironmentValues().environmentObject as? CloudKitHealthChecker {
+                HStack(spacing: AppTheme.Spacing.medium) {
+                    Image(systemName: healthChecker.isHealthy ? "checkmark.circle.fill" : "xmark.circle.fill")
+                        .foregroundColor(healthChecker.isHealthy ? .green : .red)
+                        .font(.title3)
+                    
+                    Text(healthChecker.healthMessage)
+                        .font(AppTheme.Typography.body)
+                        .foregroundColor(AppTheme.Colors.text)
+                    
+                    Spacer()
+                    
+                    Button("Re-check") {
+                        Task {
+                            await healthChecker.performHealthCheck()
+                        }
+                    }
+                    .font(AppTheme.Typography.caption)
+                    .foregroundColor(AppTheme.Colors.accent)
+                }
+                .padding(AppTheme.Spacing.medium)
+                .background(AppTheme.Colors.cardBackground)
+                .cornerRadius(AppTheme.CornerRadius.medium)
+            }
+        }
+    }
+    #endif
     
     // MARK: - App Settings Section
     
