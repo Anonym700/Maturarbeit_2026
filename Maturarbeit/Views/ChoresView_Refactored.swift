@@ -22,15 +22,18 @@ struct ChoresView_Refactored: View {
             ZStack(alignment: .bottom) {
                 // Main content
                 Group {
-                    if filteredChores.isEmpty {
+                    if !appState.isUserRegistered {
+                        // Show registration prompt
+                        registrationPromptView
+                    } else if filteredChores.isEmpty {
                         emptyStateView
                     } else {
                         choresList
                     }
                 }
                 
-                // Floating Action Button (Parents only)
-                if appState.isCurrentUserParent {
+                // Floating Action Button (Parents only, and only if registered)
+                if appState.isUserRegistered && appState.canCreateChores {
                     FloatingActionButton(
                         icon: "plus",
                         accessibilityLabel: "Add new chore"
@@ -85,6 +88,18 @@ struct ChoresView_Refactored: View {
         }
     }
     
+    // MARK: - Registration Prompt
+    
+    private var registrationPromptView: some View {
+        EmptyStateView(
+            icon: "person.crop.circle.badge.exclamationmark",
+            title: "Account Not Linked",
+            message: "Please link your iCloud account to a family member in the Family tab to continue.",
+            actionTitle: nil,
+            action: nil
+        )
+    }
+    
     // MARK: - Empty State
     
     private var emptyStateView: some View {
@@ -108,7 +123,9 @@ struct ChoresView_Refactored: View {
                     ChoreRowWithActions(
                         chore: chore,
                         memberName: chore.assignedTo != nil ? appState.getMemberName(for: chore.assignedTo!) : nil,
-                        isParent: appState.isCurrentUserParent,
+                        canToggle: appState.canCompleteChore(chore),
+                        canEdit: appState.canEditChores,
+                        canDelete: appState.canDeleteChores,
                         onToggle: {
                             Task {
                                 await appState.toggleChore(chore)
@@ -158,7 +175,9 @@ struct ChoresView_Refactored: View {
 struct ChoreRowWithActions: View {
     let chore: Chore
     let memberName: String?
-    let isParent: Bool
+    let canToggle: Bool
+    let canEdit: Bool
+    let canDelete: Bool
     let onToggle: () -> Void
     let onEdit: () -> Void
     let onDelete: () -> Void
@@ -166,14 +185,19 @@ struct ChoreRowWithActions: View {
     var body: some View {
         HStack(spacing: AppTheme.Spacing.small) {
             // Checkbox
-            Button(action: onToggle) {
+            Button(action: {
+                guard canToggle else { return }
+                onToggle()
+            }) {
                 Image(systemName: chore.isDone ? "checkmark.circle.fill" : "circle")
                     .font(.title2)
                     .foregroundColor(chore.isDone ? AppTheme.Colors.success : AppTheme.Colors.accent)
                     .frame(width: AppTheme.Layout.minTapTarget, height: AppTheme.Layout.minTapTarget)
             }
+            .disabled(!canToggle)
+            .opacity(canToggle ? 1.0 : 0.5)
             .accessibilityLabel(chore.isDone ? "Completed" : "Not completed")
-            .accessibilityHint("Double-tap to toggle completion")
+            .accessibilityHint(canToggle ? "Double-tap to toggle completion" : "You cannot toggle this task")
             
             // Task Info
             VStack(alignment: .leading, spacing: AppTheme.Spacing.xxSmall) {
@@ -225,30 +249,34 @@ struct ChoreRowWithActions: View {
             
             Spacer()
             
-            // Action Buttons (Parents only)
-            if isParent {
+            // Action Buttons (Only if user has permissions)
+            if canEdit || canDelete {
                 HStack(spacing: AppTheme.Spacing.xxSmall) {
                     // Edit Button
-                    Button(action: onEdit) {
-                        Image(systemName: "pencil")
-                            .font(.body)
-                            .foregroundColor(AppTheme.Colors.accent)
-                            .frame(width: 32, height: 32)
-                            .background(AppTheme.Colors.accent.opacity(0.1))
-                            .clipShape(Circle())
+                    if canEdit {
+                        Button(action: onEdit) {
+                            Image(systemName: "pencil")
+                                .font(.body)
+                                .foregroundColor(AppTheme.Colors.accent)
+                                .frame(width: 32, height: 32)
+                                .background(AppTheme.Colors.accent.opacity(0.1))
+                                .clipShape(Circle())
+                        }
+                        .accessibilityLabel("Edit task")
                     }
-                    .accessibilityLabel("Edit task")
                     
                     // Delete Button
-                    Button(action: onDelete) {
-                        Image(systemName: "trash")
-                            .font(.body)
-                            .foregroundColor(AppTheme.Colors.error)
-                            .frame(width: 32, height: 32)
-                            .background(AppTheme.Colors.error.opacity(0.1))
-                            .clipShape(Circle())
+                    if canDelete {
+                        Button(action: onDelete) {
+                            Image(systemName: "trash")
+                                .font(.body)
+                                .foregroundColor(AppTheme.Colors.error)
+                                .frame(width: 32, height: 32)
+                                .background(AppTheme.Colors.error.opacity(0.1))
+                                .clipShape(Circle())
+                        }
+                        .accessibilityLabel("Delete task")
                     }
-                    .accessibilityLabel("Delete task")
                 }
             }
         }

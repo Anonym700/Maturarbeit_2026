@@ -24,7 +24,9 @@ final class CloudKitStore: ChoreStore {
     
     func saveChore(_ chore: Chore) async {
         do {
-            let record = chore.toCKRecord(zoneID: manager.customZone.zoneID)
+            // Get FamilyRoot record ID for parent reference (critical for sharing)
+            let familyRootID = manager.getFamilyRootRecordID()
+            let record = chore.toCKRecord(zoneID: manager.currentZoneID, parentRecordID: familyRootID)
             _ = try await manager.save(record)
             print("✅ Saved chore: \(chore.title)")
         } catch {
@@ -41,7 +43,7 @@ final class CloudKitStore: ChoreStore {
         do {
             let recordID = CKRecord.ID(
                 recordName: chore.id.uuidString,
-                zoneID: manager.customZone.zoneID
+                zoneID: manager.currentZoneID
             )
             try await manager.delete(recordID)
             print("✅ Deleted chore: \(chore.title)")
@@ -69,7 +71,9 @@ final class CloudKitStore: ChoreStore {
     
     func saveFamilyMember(_ member: FamilyMember) async {
         do {
-            let record = member.toCKRecord(zoneID: manager.customZone.zoneID)
+            // Get FamilyRoot record ID for parent reference (critical for sharing)
+            let familyRootID = manager.getFamilyRootRecordID()
+            let record = member.toCKRecord(zoneID: manager.currentZoneID, parentRecordID: familyRootID)
             _ = try await manager.save(record)
             print("✅ Saved family member: \(member.name)")
         } catch {

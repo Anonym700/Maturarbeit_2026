@@ -1,4 +1,5 @@
 import UIKit
+import CloudKit
 
 final class AppDelegate: NSObject, UIApplicationDelegate {
     
@@ -37,6 +38,20 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         Task {
             await CloudKitSubscriptions().handleRemoteNotification(userInfo)
             completionHandler(.newData)
+        }
+    }
+}
+
+// MARK: - CloudKit Share Acceptance (invoked when tapping iCloud share links)
+extension AppDelegate {
+    func application(_ application: UIApplication, userDidAcceptCloudKitShareWith metadata: CKShare.Metadata) {
+        Task { @MainActor in
+            do {
+                try await CloudKitManager.shared.acceptShare(metadata: metadata)
+                print("✅ CloudKit share accepted via URL")
+            } catch {
+                print("❌ Failed to accept CloudKit share: \(error)")
+            }
         }
     }
 }

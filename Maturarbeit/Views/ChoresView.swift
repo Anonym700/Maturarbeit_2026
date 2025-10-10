@@ -17,25 +17,31 @@ struct ChoresView: View {
     var body: some View {
         NavigationView {
             VStack {
-                List {
-                    ForEach(appState.chores) { chore in
-                        ChoreRowView(chore: chore)
+                if !appState.isUserRegistered {
+                    // Show registration prompt
+                    registrationPromptView
+                } else {
+                    // Show chores list
+                    List {
+                        ForEach(appState.chores) { chore in
+                            ChoreRowView(chore: chore)
+                        }
+                        .onDelete(perform: appState.canDeleteChores ? deleteChores : nil)
                     }
-                    .onDelete(perform: appState.isCurrentUserParent ? deleteChores : nil)
-                }
-                .listStyle(PlainListStyle())
-                .background(Color.black)
-                
-                if appState.isCurrentUserParent {
-                    Button(action: { showingAddChore = true }) {
-                        Image(systemName: "plus")
-                            .font(.title2)
-                            .foregroundColor(.white)
-                            .frame(width: 60, height: 60)
-                            .background(Color.purple)
-                            .clipShape(Circle())
+                    .listStyle(PlainListStyle())
+                    .background(Color.black)
+                    
+                    if appState.canCreateChores {
+                        Button(action: { showingAddChore = true }) {
+                            Image(systemName: "plus")
+                                .font(.title2)
+                                .foregroundColor(.white)
+                                .frame(width: 60, height: 60)
+                                .background(Color.purple)
+                                .clipShape(Circle())
+                        }
+                        .padding(.bottom)
                     }
-                    .padding(.bottom)
                 }
             }
             .background(Color.black.ignoresSafeArea())
@@ -78,6 +84,28 @@ struct ChoresView: View {
         }
     }
     
+    // MARK: - Registration Prompt
+    
+    private var registrationPromptView: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "person.crop.circle.badge.exclamationmark")
+                .font(.system(size: 60))
+                .foregroundColor(.purple)
+            
+            Text("Account Not Linked")
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+            
+            Text("Please link your iCloud account to a family member in the Family tab to continue.")
+                .font(.body)
+                .foregroundColor(.gray)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
     private func deleteChores(offsets: IndexSet) {
         for index in offsets {
             let chore = appState.chores[index]
@@ -92,9 +120,14 @@ struct ChoreRowView: View {
     @EnvironmentObject var appState: AppState
     let chore: Chore
     
+    var canToggle: Bool {
+        appState.canCompleteChore(chore)
+    }
+    
     var body: some View {
         HStack {
             Button(action: {
+                guard canToggle else { return }
                 Task {
                     await appState.toggleChore(chore)
                 }
@@ -103,6 +136,8 @@ struct ChoreRowView: View {
                     .foregroundColor(chore.isDone ? .green : .purple)
                     .font(.title2)
             }
+            .disabled(!canToggle)
+            .opacity(canToggle ? 1.0 : 0.5)
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(chore.title)

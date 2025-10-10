@@ -2,8 +2,8 @@ import CloudKit
 import Foundation
 
 extension Chore {
-    /// Convert Chore → CKRecord
-    func toCKRecord(zoneID: CKRecordZone.ID) -> CKRecord {
+    /// Convert Chore → CKRecord with parent reference for sharing
+    func toCKRecord(zoneID: CKRecordZone.ID, parentRecordID: CKRecord.ID? = nil) -> CKRecord {
         let recordID = CKRecord.ID(recordName: id.uuidString, zoneID: zoneID)
         let record = CKRecord(recordType: "Chore", recordID: recordID)
         
@@ -14,6 +14,11 @@ extension Chore {
         record["recurrence"] = recurrence.rawValue as CKRecordValue
         record["createdAt"] = createdAt as CKRecordValue
         record["deadline"] = deadline as CKRecordValue?
+        
+        // CRITICAL: Link to parent (FamilyRoot) for sharing
+        if let parentRecordID = parentRecordID {
+            record.parent = CKRecord.Reference(recordID: parentRecordID, action: .none)
+        }
         
         return record
     }
@@ -49,13 +54,19 @@ extension Chore {
 }
 
 extension FamilyMember {
-    /// Convert FamilyMember → CKRecord
-    func toCKRecord(zoneID: CKRecordZone.ID) -> CKRecord {
+    /// Convert FamilyMember → CKRecord with parent reference for sharing
+    func toCKRecord(zoneID: CKRecordZone.ID, parentRecordID: CKRecord.ID? = nil) -> CKRecord {
         let recordID = CKRecord.ID(recordName: id.uuidString, zoneID: zoneID)
         let record = CKRecord(recordType: "FamilyMember", recordID: recordID)
         
         record["name"] = name as CKRecordValue
         record["role"] = role.rawValue as CKRecordValue
+        record["iCloudUserID"] = iCloudUserID as CKRecordValue?
+        
+        // CRITICAL: Link to parent (FamilyRoot) for sharing
+        if let parentRecordID = parentRecordID {
+            record.parent = CKRecord.Reference(recordID: parentRecordID, action: .none)
+        }
         
         return record
     }
@@ -72,7 +83,9 @@ extension FamilyMember {
             return nil
         }
         
-        return FamilyMember(id: recordName, name: name, role: role)
+        let iCloudUserID = record["iCloudUserID"] as? String
+        
+        return FamilyMember(id: recordName, name: name, role: role, iCloudUserID: iCloudUserID)
     }
 }
 

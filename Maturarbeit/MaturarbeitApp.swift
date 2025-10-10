@@ -29,6 +29,39 @@ struct MaturarbeitApp: App {
                         try? await CloudKitSubscriptions().setupSubscriptions()
                     }
                 }
+                .onOpenURL { url in
+                    // Handle CloudKit share URLs
+                    handleIncomingURL(url)
+                }
+        }
+    }
+    
+    private func handleIncomingURL(_ url: URL) {
+        Task { @MainActor in
+            // Check if this is a CloudKit share URL
+            let container = CKContainer(identifier: "iCloud.com.christosalexisfantino.MaturarbeitApp")
+            
+            do {
+                // Use continuation to convert callback to async/await
+                let metadata: CKShare.Metadata = try await withCheckedThrowingContinuation { continuation in
+                    container.fetchShareMetadata(with: url) { metadata, error in
+                        if let error = error {
+                            continuation.resume(throwing: error)
+                        } else if let metadata = metadata {
+                            continuation.resume(returning: metadata)
+                        } else {
+                            continuation.resume(throwing: CKError(.unknownItem))
+                        }
+                    }
+                }
+                
+                // Accept the share
+                try await CloudKitManager.shared.acceptShare(metadata: metadata)
+                
+                print("✅ Successfully joined family share!")
+            } catch {
+                print("❌ Failed to accept share: \(error)")
+            }
         }
     }
 }
