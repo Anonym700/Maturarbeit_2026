@@ -17,6 +17,7 @@ struct SettingsView: View {
     @State private var showingResetConfirmation = false
     @State private var showingThemeSheet = false
     @State private var showingHelpSheet = false
+    @State private var reloadState: ReloadButtonState = .idle
     
     var body: some View {
         NavigationView {
@@ -43,9 +44,15 @@ struct SettingsView: View {
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .navigationBarLeading) {
                     if let currentUser = appState.currentUser {
                         RoleBadge(role: currentUser.role.displayLabel)
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    ReloadButton(state: $reloadState) {
+                        await appState.reloadAllData()
                     }
                 }
             }

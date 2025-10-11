@@ -16,6 +16,7 @@ struct ChoresView_Refactored: View {
     @State private var selectedRecurrence: ChoreRecurrence = .daily
     @State private var deadline: Date?
     @State private var editingChore: Chore?
+    @State private var reloadState: ReloadButtonState = .idle
     
     var body: some View {
         NavigationView {
@@ -47,9 +48,15 @@ struct ChoresView_Refactored: View {
             .navigationTitle("Chores")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .navigationBarLeading) {
                     if let currentUser = appState.currentUser {
                         RoleBadge(role: currentUser.role.displayLabel)
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    ReloadButton(state: $reloadState) {
+                        await appState.reloadAllData()
                     }
                 }
             }

@@ -10,6 +10,7 @@ import SwiftUI
 
 struct DashboardView: View {
     @EnvironmentObject var appState: AppState
+    @State private var reloadState: ReloadButtonState = .idle
     
     var body: some View {
         NavigationView {
@@ -34,9 +35,15 @@ struct DashboardView: View {
             .navigationTitle("Dashboard")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .navigationBarLeading) {
                     if let currentUser = appState.currentUser {
                         RoleBadge(role: currentUser.role.displayLabel)
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    ReloadButton(state: $reloadState) {
+                        await appState.reloadAllData()
                     }
                 }
             }

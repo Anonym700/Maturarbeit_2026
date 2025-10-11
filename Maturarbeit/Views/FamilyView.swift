@@ -17,6 +17,7 @@ struct FamilyView: View {
     @State private var isJoining = false
     @State private var joinError: String?
     @State private var joinSuccess = false
+    @State private var reloadState: ReloadButtonState = .idle
     
     var body: some View {
         NavigationView {
@@ -43,9 +44,15 @@ struct FamilyView: View {
             .navigationTitle("Family")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .navigationBarLeading) {
                     if let currentUser = appState.currentUser {
                         RoleBadge(role: currentUser.role.displayLabel)
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    ReloadButton(state: $reloadState) {
+                        await appState.reloadAllData()
                     }
                 }
             }

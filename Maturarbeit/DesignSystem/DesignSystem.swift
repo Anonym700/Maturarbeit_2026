@@ -133,27 +133,13 @@ struct RoleBadge: View {
     let role: String
     
     var body: some View {
-        HStack(spacing: AppTheme.Spacing.xxSmall) {
-            // Subtle indicator dot instead of person icon
-            Circle()
-                .fill(AppTheme.Colors.accent.opacity(0.8))
-                .frame(width: 6, height: 6)
-            
-            Text(role)
-                .font(AppTheme.Typography.caption)
-                .fontWeight(.medium)
-                .foregroundColor(AppTheme.Colors.textSecondary)
-        }
-        .padding(.horizontal, AppTheme.Spacing.small)
-        .padding(.vertical, 6)
-        .background(
-            // Very subtle background - almost transparent
-            AppTheme.Colors.accent.opacity(0.08)
-        )
-        .cornerRadius(AppTheme.CornerRadius.large)
-        .accessibilityLabel("Current user: \(role)")
-        .accessibilityAddTraits(.isStaticText)
-        .allowsHitTesting(false)
+        Text(role)
+            .font(AppTheme.Typography.subheadline)
+            .fontWeight(.medium)
+            .foregroundColor(AppTheme.Colors.text)
+            .accessibilityLabel("Current user: \(role)")
+            .accessibilityAddTraits(.isStaticText)
+            .allowsHitTesting(false)
     }
 }
 
@@ -494,6 +480,68 @@ struct ErrorView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppTheme.Colors.background)
+    }
+}
+
+// MARK: - Reload Button
+
+/// State for reload button animation
+enum ReloadButtonState {
+    case idle
+    case loading
+    case success
+}
+
+/// Reload button with spinner and success animation
+struct ReloadButton: View {
+    @Binding var state: ReloadButtonState
+    let action: () async -> Void
+    
+    var body: some View {
+        Button(action: {
+            guard state == .idle else { return }
+            
+            Task {
+                state = .loading
+                await action()
+                state = .success
+                
+                // Reset to idle after showing success for 1.5 seconds
+                try? await Task.sleep(nanoseconds: 1_500_000_000)
+                withAnimation {
+                    state = .idle
+                }
+            }
+        }) {
+            Group {
+                switch state {
+                case .idle:
+                    Image(systemName: "arrow.clockwise")
+                        .font(.title3)
+                        .foregroundColor(AppTheme.Colors.accent)
+                        .frame(width: 24, height: 24)
+                        .transition(.opacity)
+                    
+                case .loading:
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle())
+                        .scaleEffect(1.1)
+                        .tint(AppTheme.Colors.accent)
+                        .frame(width: 24, height: 24)
+                        .transition(.opacity)
+                    
+                case .success:
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.title3)
+                        .foregroundColor(AppTheme.Colors.success)
+                        .frame(width: 24, height: 24)
+                        .transition(.scale.combined(with: .opacity))
+                }
+            }
+            .animation(.easeInOut(duration: 0.3), value: state)
+        }
+        .disabled(state != .idle)
+        .accessibilityLabel(state == .loading ? "Loading" : state == .success ? "Success" : "Reload data")
     }
 }
 

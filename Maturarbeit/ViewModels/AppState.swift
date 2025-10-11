@@ -617,6 +617,25 @@ class AppState: ObservableObject {
         members.first { $0.id == id }?.name ?? "Unknown"
     }
     
+    /// Manually reload all data from CloudKit (for refresh button)
+    func reloadAllData() async {
+        print("🔄 Manual reload triggered...")
+        
+        // Check for shared family (with retry for reliability)
+        await checkForSharedFamilyWithRetry(maxAttempts: 2)
+        
+        // If we have an active share, reload participants
+        if cloudKitManager.activeShare != nil {
+            await loadShareParticipants()
+            await determineCurrentUserFromShare()
+        }
+        
+        // Reload chores (this syncs tasks from other devices)
+        await loadChores()
+        
+        print("✅ Manual reload complete!")
+    }
+    
     // MARK: - Daily Reset Functions
     
     /// Manually reset all tasks (called from Settings)
