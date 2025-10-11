@@ -1,39 +1,41 @@
-# 🏠 AemtliApp – Family Chore Management
+# 🏠 AemtliApp – Familien-Ämtli-Verwaltung
 
 [![iOS](https://img.shields.io/badge/iOS-17.0%2B-blue.svg)](https://www.apple.com/ios/)
 [![Swift](https://img.shields.io/badge/Swift-5.10%2B-orange.svg)](https://swift.org)
 [![SwiftUI](https://img.shields.io/badge/SwiftUI-5-green.svg)](https://developer.apple.com/xcode/swiftui/)
 
 
-**AemtliApp** (Swiss German for "small chore/job") is a modern iOS app designed to help families manage household chores and tasks. Parents can assign chores with point values, while children can track and complete their responsibilities.
+**AemtliApp** (Schweizerdeutsch für "kleine Aufgabe/Arbeit") ist eine moderne iOS-App, die Familien bei der Verwaltung von Haushaltsaufgaben unterstützt. Eltern können Ämtli mit Punktewerten zuweisen, während Kinder ihre Aufgaben verfolgen und erledigen können.
 
 ---
 
-## 📑 Table of Contents
+## 📑 Inhaltsverzeichnis
 
-1. [Features](#-features)
-2. [Architecture](#-architecture)
+1. [Funktionen](#-funktionen)
+2. [Architektur](#-architektur)
 3. [Setup & Installation](#-setup--installation)
-4. [Project Structure](#-project-structure)
-5. [Documentation](#-documentation)
+4. [Projektstruktur](#-projektstruktur)
+5. [Dokumentation](#-dokumentation)
 
 ---
 
-## ✨ Features
+## ✨ Funktionen
 
-- **📊 Dashboard:** Visual progress tracking with animated progress ring showing completion percentage
-- **✅ Chore Management:** Create, assign, and complete chores with point values
-- **👨‍👩‍👧‍👦 Family Roles:** Parent and Child roles with different permissions
-  - **Parents:** Can add, delete, and assign chores
-  - **Children:** Can view and complete assigned chores
-- **🔄 User Switching:** Switch between family members to see different perspectives
-- **⚙️ Settings:** Basic app information and settings display
+- **📊 Dashboard:** Visuelle Fortschrittsverfolgung mit animiertem Fortschrittsring zur Anzeige des Erledigungsstatus
+- **✅ Ämtli-Verwaltung:** Erstellen, Zuweisen und Erledigen von Ämtli mit Punktewerten
+- **👨‍👩‍👧‍👦 Familienrollen:** Eltern- und Kinderrollen mit unterschiedlichen Berechtigungen
+  - **Eltern:** Können Ämtli hinzufügen, löschen und zuweisen
+  - **Kinder:** Können zugewiesene Ämtli ansehen und erledigen
+- **☁️ iCloud-Synchronisation:** CloudKit-Integration für geräteübergreifende Datensynchronisation
+- **👥 Family-Sharing:** Teilen von Ämtli mit anderen Familienmitgliedern über iCloud
+- **🔄 Benutzerwechsel:** Zwischen Familienmitgliedern wechseln, um verschiedene Perspektiven zu sehen
+- **⚙️ Einstellungen:** Anzeige grundlegender App-Informationen und Einstellungen
 
 ---
 
-## 🏗 Architecture
+## 🏗 Architektur
 
-AemtliApp follows the **MVVM (Model-View-ViewModel)** pattern with a protocol-based storage layer for testability and extensibility.
+AemtliApp folgt dem **MVVM (Model-View-ViewModel)** Pattern mit einer protokollbasierten Speicherschicht für Testbarkeit und Erweiterbarkeit.
 
 ```mermaid
 graph TD
@@ -62,105 +64,135 @@ graph TD
     style K fill:#2ecc71,color:#fff
 ```
 
-### Key Components
+### Hauptkomponenten
 
 **Models:**
-- `Chore` – Represents a household task with title, points, assignment, due date, and completion status
-- `FamilyMember` – User entity with name and role
-- `FamilyRole` – Enum defining parent/child permissions
+- `Chore` – Repräsentiert eine Haushaltsaufgabe mit Titel, Punkten, Zuweisung, Fälligkeitsdatum und Erledigungsstatus
+- `FamilyMember` – Benutzerentität mit Name und Rolle
+- `FamilyRole` – Enum zur Definition von Eltern-/Kindberechtigungen
 
 **ViewModels:**
-- `AppState` – Main `@MainActor` observable object managing app state, chores, and family members
+- `AppState` – Haupt-`@MainActor` Observable Object zur Verwaltung von App-Status, Ämtli und Familienmitgliedern
 
 **Store Layer:**
-- `ChoreStore` – Protocol defining CRUD operations
-- `InMemoryStore` – Concrete implementation with sample data
+- `ChoreStore` – Protokoll zur Definition von CRUD-Operationen
+- `CloudKitStore` – CloudKit-Implementierung mit iCloud-Synchronisation
+- `InMemoryStore` – In-Memory-Implementierung mit Beispieldaten
 
 **Views:**
-- `RootView` – TabView container with global state
-- `DashboardView` – Progress visualization with animated ring
-- `ChoresView` – Chore list with add/delete functionality
-- `FamilyView` – Family member management and user switching
-- `SettingsView` – App information display
+- `RootView` – TabView-Container mit globalem Status
+- `DashboardView` – Fortschrittsvisualisierung mit animiertem Ring
+- `ChoresView` – Ämtli-Liste mit Hinzufügen-/Löschen-Funktionalität
+- `FamilyView` – Familienmitgliederverwaltung und Benutzerwechsel
+- `SettingsView` – Einstellungsbildschirm
+
+**CloudKit Layer:**
+- `CloudKitManager` – Zentrale CloudKit-Verwaltung und API-Wrapper
+- `CloudKitHealthChecker` – Überwachung der iCloud-Verbindung und Berechtigungen
+- `CloudKitSubscriptions` – Push-Benachrichtigungen für Datenänderungen
+- `RecordMapping` – Mapping zwischen App-Modellen und CloudKit-Records
 
 **Design System:**
-- `AppTheme.swift` – Centralized design tokens (colors, spacing, typography)
-- `DesignSystem.swift` – Reusable SwiftUI components
+- `AppTheme.swift` – Zentralisierte Design-Tokens (Farben, Abstände, Typografie)
+- `DesignSystem.swift` – Wiederverwendbare SwiftUI-Komponenten
+- `ThemeManager.swift` – Theme-Verwaltung
 
 ---
 
 ## 🚀 Setup & Installation
 
-### Requirements
+### Voraussetzungen
 
-- **Xcode:** 15.0 or later
+- **Xcode:** 15.0 oder neuer
 - **iOS Target:** 17.0+
 - **Swift:** 5.10+
-- **Dependencies:** None (pure SwiftUI/Foundation)
+- **iCloud Account:** Erforderlich für CloudKit-Synchronisation
+- **Abhängigkeiten:** CloudKit, SwiftUI, Foundation
 
-### Installation Steps
+### Installationsschritte
 
-1. **Clone the repository:**
+1. **Repository klonen:**
    ```bash
    git clone https://github.com/yourusername/Maturarbeit_2026.git
    cd Maturarbeit_2026
    ```
 
-2. **Open in Xcode:**
+2. **In Xcode öffnen:**
    ```bash
    open Maturarbeit_2026.xcodeproj
    ```
 
-3. **Select your target device:**
-   - Choose an iOS 17+ simulator or physical device
-   - Configure signing team in **Signing & Capabilities**
+3. **Zielgerät auswählen:**
+   - Einen iOS 17+ Simulator oder ein physisches Gerät auswählen
+   - Signatur-Team in **Signing & Capabilities** konfigurieren
+   - iCloud-Berechtigung aktivieren (CloudKit-Container wird automatisch konfiguriert)
 
-4. **Build and run:**
-   - Press `⌘R` or click the Run button
-   - App launches with pre-seeded sample chores
+4. **Build und Run:**
+   - `⌘R` drücken oder auf den Run-Button klicken
+   - Mit iCloud-Account anmelden für volle Funktionalität
+   - Die App startet mit vorgeladenen Beispiel-Ämtli
 
-**Note:** The app currently uses `InMemoryStore` for data persistence (data resets on app restart).
+**Hinweis:** Die App verwendet `CloudKitStore` für persistente Datenspeicherung und Synchronisation über iCloud.
 
 ---
 
-## 📁 Project Structure
+## 📁 Projektstruktur
 
 ```
 Maturarbeit_2026/
-├── Maturarbeit.xcodeproj/     # Xcode project file
-├── Docs/                       # Documentation
-│   └── UI-Revamp-Notes.md     # UI improvement details
-├── README.md                   # This file
-└── Maturarbeit/               # Source code folder
-    ├── MaturarbeitApp.swift   # App entry point
-    ├── Models/                # Data models
-    │   ├── Chore.swift        # Chore entity
-    │   ├── FamilyMember.swift # User entity
-    │   └── FamilyRole.swift   # Role enum (Parent/Child)
+├── Maturarbeit.xcodeproj/     # Xcode-Projektdatei
+├── Docs/                       # Dokumentation
+│   ├── CloudKit-Master-Prompt.md        # CloudKit-Implementierungsdetails
+│   ├── Family-Sharing-System.md         # Family-Sharing-Architektur
+│   ├── iCloud-Authentication-System.md  # iCloud-Auth-System
+│   ├── MASTER-APP-REVIEW-PROMPT.md      # Vollständige App-Übersicht
+│   └── UI-Revamp-Notes.md               # UI-Verbesserungsdetails
+├── README.md                   # Diese Datei
+└── Maturarbeit/               # Quellcode-Ordner
+    ├── MaturarbeitApp.swift   # App-Einstiegspunkt
+    ├── Models/                # Datenmodelle
+    │   ├── Chore.swift        # Ämtli-Entität
+    │   ├── ChoreRecurrence.swift # Wiederholungsmuster
+    │   ├── FamilyMember.swift # Benutzer-Entität
+    │   └── FamilyRole.swift   # Rollen-Enum (Eltern/Kind)
     ├── ViewModels/
-    │   └── AppState.swift     # Main app state (@MainActor)
-    ├── Store/                 # Data persistence layer
-    │   ├── ChoreStore.swift   # Protocol for CRUD operations
-    │   └── InMemoryStore.swift # In-memory implementation
-    ├── Views/                 # SwiftUI views
-    │   ├── RootView.swift     # TabView container
-    │   ├── DashboardView.swift # Progress visualization
-    │   ├── ChoresView.swift   # Chore list
-    │   ├── FamilyView.swift   # Family management
-    │   └── SettingsView.swift # Settings screen
-    ├── DesignSystem/          # UI design system
-    │   ├── AppTheme.swift     # Design tokens
-    │   └── DesignSystem.swift # Reusable components
-    ├── Assets.xcassets/       # App assets
-    └── Preview Content/       # Preview assets
+    │   └── AppState.swift     # Haupt-App-Status (@MainActor)
+    ├── Store/                 # Datenpersistenzschicht
+    │   ├── ChoreStore.swift   # Protokoll für CRUD-Operationen
+    │   ├── CloudKitStore.swift # CloudKit-Implementierung
+    │   └── InMemoryStore.swift # In-Memory-Implementierung
+    ├── CloudKit/              # CloudKit-Integration
+    │   ├── CloudKitManager.swift      # Zentrale CloudKit-Verwaltung
+    │   ├── CloudKitHealthChecker.swift # Verbindungsüberwachung
+    │   ├── CloudKitSubscriptions.swift # Push-Benachrichtigungen
+    │   └── RecordMapping.swift        # Model-Record-Mapping
+    ├── Views/                 # SwiftUI-Views
+    │   ├── RootView.swift     # TabView-Container
+    │   ├── DashboardView.swift # Fortschrittsvisualisierung
+    │   ├── ChoresView.swift   # Ämtli-Liste
+    │   ├── FamilyView.swift   # Familienverwaltung
+    │   ├── FamilySharingView.swift # Family-Sharing-Einstellungen
+    │   └── SettingsView.swift # Einstellungsbildschirm
+    ├── DesignSystem/          # UI-Design-System
+    │   ├── AppTheme.swift     # Design-Tokens
+    │   ├── DesignSystem.swift # Wiederverwendbare Komponenten
+    │   └── ThemeManager.swift # Theme-Verwaltung
+    ├── Utils/                 # Hilfsprogramme
+    │   └── LocalToCloudKitMigration.swift # Datenmigration
+    ├── Assets.xcassets/       # App-Assets
+    └── Preview Content/       # Preview-Assets
 ```
 
 ---
 
-## 📚 Documentation
+## 📚 Dokumentation
 
-Additional project documentation is available in the `/Docs` folder:
+Zusätzliche Projektdokumentation ist im Ordner `/Docs` verfügbar:
 
-- **[UI-Revamp-Notes.md](/Docs/UI-Revamp-Notes.md)** – Detailed UI/UX improvements, design system implementation, and accessibility enhancements
+- **[CloudKit-Master-Prompt.md](/Docs/CloudKit-Master-Prompt.md)** – Vollständige CloudKit-Implementierungsdetails und Architektur
+- **[Family-Sharing-System.md](/Docs/Family-Sharing-System.md)** – Family-Sharing-System mit iCloud-Integration
+- **[iCloud-Authentication-System.md](/Docs/iCloud-Authentication-System.md)** – iCloud-Authentifizierungs- und Berechtigungssystem
+- **[MASTER-APP-REVIEW-PROMPT.md](/Docs/MASTER-APP-REVIEW-PROMPT.md)** – Umfassende App-Übersicht und Systemarchitektur
+- **[UI-Revamp-Notes.md](/Docs/UI-Revamp-Notes.md)** – Detaillierte UI/UX-Verbesserungen und Design-System
 
 ---
