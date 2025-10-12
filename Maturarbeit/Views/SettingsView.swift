@@ -41,7 +41,7 @@ struct SettingsView: View {
                 .padding(.bottom, AppTheme.Spacing.xLarge)
             }
             .background(AppTheme.Colors.background.ignoresSafeArea())
-            .navigationTitle("Settings")
+            .navigationTitle("Einstellungen")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -79,7 +79,7 @@ struct SettingsView: View {
                 
                 Spacer()
                 
-                Button("Re-check") {
+                Button("Erneut prüfen") {
                     Task {
                         await healthChecker.performHealthCheck()
                     }
@@ -98,7 +98,7 @@ struct SettingsView: View {
     
     private var appSettingsSection: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
-            Text("App Settings")
+            Text("App-Einstellungen")
                 .font(AppTheme.Typography.headline)
                 .foregroundColor(AppTheme.Colors.text)
                 .accessibilityAddTraits(.isHeader)
@@ -107,7 +107,7 @@ struct SettingsView: View {
                 Button(action: { showingThemeSheet = true }) {
                     SettingRow(
                         icon: "paintbrush.fill",
-                        title: "Theme",
+                        title: "Erscheinungsbild",
                         value: themeManager.themeMode.displayName
                     )
                 }
@@ -119,7 +119,7 @@ struct SettingsView: View {
                             .font(.title3)
                             .frame(width: 32)
                         
-                        Text("Notifications")
+                        Text("Benachrichtigungen")
                             .font(AppTheme.Typography.body)
                             .foregroundColor(AppTheme.Colors.text)
                     }
@@ -132,7 +132,7 @@ struct SettingsView: View {
                 Button(action: { showingResetConfirmation = true }) {
                     SettingRow(
                         icon: "arrow.counterclockwise",
-                        title: "Reset Daily Tasks",
+                        title: "Tägliche Aufgaben zurücksetzen",
                         value: nil
                     )
                 }
@@ -144,7 +144,7 @@ struct SettingsView: View {
                 }) {
                     SettingRow(
                         icon: "trash.circle.fill",
-                        title: "Clear All Data & Restart",
+                        title: "Alle Daten löschen & Neustart",
                         value: nil
                     )
                 }
@@ -152,7 +152,7 @@ struct SettingsView: View {
                 Button(action: { showingHelpSheet = true }) {
                     SettingRow(
                         icon: "questionmark.circle.fill",
-                        title: "Help & Support"
+                        title: "Hilfe & Support"
                     )
                 }
             }
@@ -163,15 +163,15 @@ struct SettingsView: View {
         .sheet(isPresented: $showingHelpSheet) {
             HelpSupportSheet()
         }
-        .alert("Reset Daily Tasks", isPresented: $showingResetConfirmation) {
-            Button("Cancel", role: .cancel) { }
-            Button("Reset", role: .destructive) {
+        .alert("Tägliche Aufgaben zurücksetzen", isPresented: $showingResetConfirmation) {
+            Button("Abbrechen", role: .cancel) { }
+            Button("Zurücksetzen", role: .destructive) {
                 Task {
                     await appState.resetDailyTasks()
                 }
             }
         } message: {
-            Text("This will reset all tasks to incomplete. This action cannot be undone.")
+            Text("Dies setzt alle Aufgaben auf unvollständig zurück. Diese Aktion kann nicht rückgängig gemacht werden.")
         }
     }
     
@@ -185,11 +185,11 @@ struct SettingsView: View {
                 .accessibilityHidden(true)
             
             VStack(spacing: AppTheme.Spacing.xSmall) {
-                Text("About AemtliApp")
+                Text("Über Ämtlis")
                     .font(AppTheme.Typography.headline)
                     .foregroundColor(AppTheme.Colors.text)
                 
-                Text("A simple family chores app to help manage daily tasks and responsibilities. Built with SwiftUI for iOS 17+.")
+                Text("Eine einfache Familien-Ämtli-App zur Verwaltung täglicher Aufgaben und Verantwortlichkeiten. Entwickelt mit SwiftUI für iOS 17+.")
                     .font(AppTheme.Typography.body)
                     .foregroundColor(AppTheme.Colors.textSecondary)
                     .multilineTextAlignment(.center)
@@ -212,7 +212,7 @@ struct SettingsView: View {
                     .font(AppTheme.Typography.caption)
                     .foregroundColor(AppTheme.Colors.textTertiary)
                 
-                Text("© 2025 AemtliApp")
+                Text("© 2025 Ämtlis")
                     .font(AppTheme.Typography.caption2)
                     .foregroundColor(AppTheme.Colors.textTertiary)
             }
@@ -271,7 +271,7 @@ struct SettingRow: View {
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityLabel(value != nil ? "\(title), \(value!)" : title)
-        .accessibilityHint("Double tap to open")
+        .accessibilityHint("Doppeltippen zum Öffnen")
         .accessibilityAddTraits(.isButton)
     }
 }
@@ -286,12 +286,12 @@ struct ThemeSelectionSheet: View {
         NavigationView {
             List {
                 Section {
-                    Text("Choose your preferred appearance for the app.")
+                    Text("Wähle das bevorzugte Erscheinungsbild für die App.")
                         .font(AppTheme.Typography.body)
                         .foregroundColor(AppTheme.Colors.textSecondary)
                         .padding(.vertical, AppTheme.Spacing.xxSmall)
                 } header: {
-                    Text("Appearance")
+                    Text("Erscheinungsbild")
                 }
                 
                 Section {
@@ -307,11 +307,11 @@ struct ThemeSelectionSheet: View {
                     }
                 }
             }
-            .navigationTitle("Theme Settings")
+            .navigationTitle("Theme-Einstellungen")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button("Fertig") {
                         dismiss()
                     }
                     .fontWeight(.semibold)
@@ -373,46 +373,46 @@ struct HelpSupportSheet: View {
     var body: some View {
         NavigationView {
             List {
-                Section("Getting Started") {
+                Section("Erste Schritte") {
                     HelpRow(
                         icon: "plus.circle.fill",
-                        title: "Creating Tasks",
-                        description: "Tap the + button to create a new task and assign it to family members."
+                        title: "Aufgaben erstellen",
+                        description: "Tippe auf den + Button um eine neue Aufgabe zu erstellen und sie Familienmitgliedern zuzuweisen."
                     )
                     
                     HelpRow(
                         icon: "checkmark.circle.fill",
-                        title: "Completing Tasks",
-                        description: "Tap the circle next to a task to mark it as complete."
+                        title: "Aufgaben erledigen",
+                        description: "Tippe auf den Kreis neben einer Aufgabe um sie als erledigt zu markieren."
                     )
                     
                     HelpRow(
                         icon: "trash.fill",
-                        title: "Deleting Tasks",
-                        description: "Long press on a task and select Delete from the menu."
+                        title: "Aufgaben löschen",
+                        description: "Drücke lange auf eine Aufgabe und wähle Löschen aus dem Menü."
                     )
                 }
                 
-                Section("Daily Reset") {
+                Section("Täglicher Reset") {
                     HelpRow(
                         icon: "clock.fill",
-                        title: "Automatic Reset",
-                        description: "Tasks automatically reset at midnight (00:00) each day."
+                        title: "Automatischer Reset",
+                        description: "Aufgaben werden automatisch um Mitternacht (00:00) jeden Tag zurückgesetzt."
                     )
                     
                     HelpRow(
                         icon: "arrow.counterclockwise",
-                        title: "Manual Reset",
-                        description: "You can manually reset tasks anytime from Settings."
+                        title: "Manueller Reset",
+                        description: "Du kannst Aufgaben jederzeit manuell in den Einstellungen zurücksetzen."
                     )
                 }
                 
-                Section("Contact") {
+                Section("Kontakt") {
                     Link(destination: URL(string: "mailto:support@aemtliapp.com")!) {
                         HStack {
                             Image(systemName: "envelope.fill")
                                 .foregroundColor(AppTheme.Colors.accent)
-                            Text("Email Support")
+                            Text("E-Mail Support")
                             Spacer()
                             Image(systemName: "arrow.up.right")
                                 .font(.caption)
@@ -421,11 +421,11 @@ struct HelpSupportSheet: View {
                     }
                 }
             }
-            .navigationTitle("Help & Support")
+            .navigationTitle("Hilfe & Support")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button("Fertig") {
                         dismiss()
                     }
                 }
