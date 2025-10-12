@@ -16,22 +16,22 @@ struct RootView: View {
         TabView {
             DashboardView()
                 .tabItem {
-                    Label("Home", systemImage: "house.fill")
+                    Label("Übersicht", systemImage: "house.fill")
                 }
             
             ChoresView_Refactored()
                 .tabItem {
-                    Label("Tasks", systemImage: "checkmark.circle.fill")
+                    Label("Aufgaben", systemImage: "checkmark.circle.fill")
                 }
             
             FamilyView()
                 .tabItem {
-                    Label("Family", systemImage: "person.3.fill")
+                    Label("Familie", systemImage: "person.3.fill")
                 }
             
             SettingsView()
                 .tabItem {
-                    Label("Settings", systemImage: "gearshape.fill")
+                    Label("Einstellungen", systemImage: "gearshape.fill")
                 }
         }
         .tint(AppTheme.Colors.accent)

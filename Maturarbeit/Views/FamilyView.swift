@@ -41,7 +41,7 @@ struct FamilyView: View {
                 .padding(.bottom, AppTheme.Spacing.xLarge)
             }
             .background(AppTheme.Colors.background.ignoresSafeArea())
-            .navigationTitle("Family")
+            .navigationTitle("Familie")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -61,10 +61,10 @@ struct FamilyView: View {
                     ShareSheet(activityItems: [url])
                 }
             }
-            .alert("Link Copied", isPresented: $showingLinkCopiedAlert) {
+            .alert("Link kopiert", isPresented: $showingLinkCopiedAlert) {
                 Button("OK", role: .cancel) { }
             } message: {
-                Text("Family invitation link has been copied to clipboard. You can now paste it in any messaging app to share with your family.")
+                Text("Der Familien-Einladungslink wurde in die Zwischenablage kopiert. Du kannst ihn jetzt in jeder Messaging-App teilen.")
             }
         }
         .task {
@@ -80,7 +80,7 @@ struct FamilyView: View {
     
     private var familySharingSection: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
-            Text("Family Sharing")
+            Text("Familienfreigabe")
                 .font(AppTheme.Typography.headline)
                 .foregroundColor(AppTheme.Colors.text)
             
@@ -93,10 +93,10 @@ struct FamilyView: View {
                             .foregroundColor(AppTheme.Colors.success)
                         
                         VStack(alignment: .leading, spacing: AppTheme.Spacing.xxSmall) {
-                            Text("Family Sharing Active")
+                            Text("Familienfreigabe aktiv")
                                 .font(AppTheme.Typography.body)
                                 .foregroundColor(AppTheme.Colors.text)
-                            Text(appState.isShareOwner ? "You are the organizer" : "You are a participant")
+                            Text(appState.isShareOwner ? "Du bist der Organisator" : "Du bist Teilnehmer")
                                 .font(AppTheme.Typography.caption)
                                 .foregroundColor(AppTheme.Colors.textSecondary)
                         }
@@ -110,7 +110,7 @@ struct FamilyView: View {
                             Button(action: copyLinkToClipboard) {
                                 HStack {
                                     Image(systemName: "doc.on.doc")
-                                    Text("Copy Link")
+                                    Text("Link kopieren")
                                     Spacer()
                                 }
                                 .padding(AppTheme.Spacing.small)
@@ -122,7 +122,7 @@ struct FamilyView: View {
                             Button(action: shareLink) {
                                 HStack {
                                     Image(systemName: "square.and.arrow.up")
-                                    Text("Share via...")
+                                    Text("Teilen über...")
                                     Spacer()
                                 }
                                 .padding(AppTheme.Spacing.small)
@@ -139,14 +139,14 @@ struct FamilyView: View {
             } else {
                 // Show create share button
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
-                    Text("Get started by creating a family share. You'll get a link to send to your family members.")
+                    Text("Erstelle eine Familienfreigabe. Du erhältst einen Link, den du an deine Familienmitglieder senden kannst.")
                         .font(AppTheme.Typography.body)
                         .foregroundColor(AppTheme.Colors.textSecondary)
                     
                     Button(action: createShare) {
                         HStack {
                             Image(systemName: "link.badge.plus")
-                            Text("Create Family Share")
+                            Text("Familienfreigabe erstellen")
                             Spacer()
                         }
                         .padding(AppTheme.Spacing.medium)
@@ -167,26 +167,26 @@ struct FamilyView: View {
     
     private var joinFamilySection: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
-            Text("Join Existing Family")
+            Text("Bestehende Familie beitreten")
                 .font(AppTheme.Typography.headline)
                 .foregroundColor(AppTheme.Colors.text)
             
             VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
-                Text("Already have an invitation link?")
+                Text("Hast du bereits einen Einladungslink?")
                     .font(AppTheme.Typography.body)
                     .foregroundColor(AppTheme.Colors.textSecondary)
                 
-                Text("📋 Step 1: Long press the link → Copy")
+                Text("📋 Schritt 1: Link lange drücken → Kopieren")
                     .font(AppTheme.Typography.caption)
                     .foregroundColor(AppTheme.Colors.textSecondary)
                 
-                Text("📝 Step 2: Paste it below")
+                Text("📝 Schritt 2: Hier unten einfügen")
                     .font(AppTheme.Typography.caption)
                     .foregroundColor(AppTheme.Colors.textSecondary)
             }
             
             // Text Field for Link
-            TextField("Paste iCloud share link here", text: $joinLinkText)
+            TextField("iCloud-Freigabelink hier einfügen", text: $joinLinkText)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .autocapitalization(.none)
                 .disableAutocorrection(true)
@@ -200,7 +200,7 @@ struct FamilyView: View {
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                     } else {
                         Image(systemName: "person.badge.plus")
-                        Text("Join Family")
+                        Text("Familie beitreten")
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -215,7 +215,7 @@ struct FamilyView: View {
             if joinSuccess {
                 HStack {
                     Image(systemName: "checkmark.circle.fill")
-                    Text("Successfully joined the family!")
+                    Text("Erfolgreich der Familie beigetreten!")
                 }
                 .font(AppTheme.Typography.caption)
                 .foregroundColor(AppTheme.Colors.success)
@@ -240,7 +240,7 @@ struct FamilyView: View {
     
     private var currentUserStatusSection: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
-            Text("Your Status")
+            Text("Dein Status")
                 .font(AppTheme.Typography.headline)
                 .foregroundColor(AppTheme.Colors.text)
                 .accessibilityAddTraits(.isHeader)
@@ -259,10 +259,10 @@ struct FamilyView: View {
                             .font(AppTheme.Typography.caption)
                             .foregroundColor(AppTheme.Colors.textSecondary)
                     } else {
-                        Text("Not in a Family")
+                        Text("Nicht in einer Familie")
                             .font(AppTheme.Typography.body)
                             .foregroundColor(AppTheme.Colors.text)
-                        Text("Create or join a family share")
+                        Text("Erstelle oder trete einer Familienfreigabe bei")
                             .font(AppTheme.Typography.caption)
                             .foregroundColor(AppTheme.Colors.textSecondary)
                     }
@@ -405,7 +405,7 @@ struct FamilyView: View {
     
     private var familyMembersSection: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
-            Text("Family Members")
+            Text("Familienmitglieder")
                 .font(AppTheme.Typography.headline)
                 .foregroundColor(AppTheme.Colors.text)
                 .accessibilityAddTraits(.isHeader)
@@ -457,11 +457,11 @@ struct FamilyMemberCard: View {
                 HStack(spacing: AppTheme.Spacing.xxSmall) {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(AppTheme.Colors.success)
-                    Text("Active")
+                    Text("Aktiv")
                         .font(AppTheme.Typography.caption)
                         .foregroundColor(AppTheme.Colors.success)
                 }
-                .accessibilityLabel("Currently active user")
+                .accessibilityLabel("Derzeit aktiver Benutzer")
             }
         }
         .padding(AppTheme.Spacing.medium)

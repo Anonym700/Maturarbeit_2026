@@ -11,6 +11,8 @@ import SwiftUI
 struct DashboardView: View {
     @EnvironmentObject var appState: AppState
     @State private var reloadState: ReloadButtonState = .idle
+    @State private var selectedChild: FamilyMember?
+    @State private var showChildDetail = false
     
     var body: some View {
         NavigationView {
@@ -32,7 +34,7 @@ struct DashboardView: View {
                 .padding(.bottom, AppTheme.Spacing.xLarge)
             }
             .background(AppTheme.Colors.background.ignoresSafeArea())
-            .navigationTitle("Dashboard")
+            .navigationTitle("Übersicht")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -54,7 +56,7 @@ struct DashboardView: View {
     
     private var welcomeHeader: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.xxSmall) {
-            Text("Welcome back!")
+            Text("Willkommen zurück!")
                 .font(AppTheme.Typography.subheadline)
                 .foregroundColor(AppTheme.Colors.textSecondary)
             
@@ -66,7 +68,7 @@ struct DashboardView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Welcome back, \(appState.currentUser?.name ?? "User")")
+        .accessibilityLabel("Willkommen zurück, \(appState.currentUser?.name ?? "Benutzer")")
     }
     
     // MARK: - Dashboard Content
@@ -81,10 +83,15 @@ struct DashboardView: View {
                 ProgressRing(progress: progressPercentage, size: 220)
                     .padding(.vertical, AppTheme.Spacing.medium)
             }
-            
-            // Today's Tasks Section
-            if !appState.chores.isEmpty {
-                todayTasksSection
+        }
+        .sheet(isPresented: $showChildDetail) {
+            if let child = selectedChild {
+                ChildDetailView(
+                    child: child,
+                    chores: appState.chores.filter { $0.assignedTo == child.id },
+                    progress: progressPercentage(for: child.id)
+                )
+                .environmentObject(appState)
             }
         }
     }
@@ -103,25 +110,10 @@ struct DashboardView: View {
                         total: totalTasksCount(for: child.id),
                         progress: progressPercentage(for: child.id)
                     )
-                }
-            }
-        }
-    }
-    
-    // MARK: - Today's Tasks Section
-    
-    private var todayTasksSection: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
-            SectionHeader(title: "Today's Tasks")
-            
-            VStack(spacing: AppTheme.Spacing.small) {
-                ForEach(visibleChores) { chore in
-                    TaskSummaryCard(
-                        title: chore.title,
-                        targetValue: 1,
-                        currentValue: chore.isDone ? 1 : 0,
-                        isCompleted: chore.isDone
-                    )
+                    .onTapGesture {
+                        selectedChild = child
+                        showChildDetail = true
+                    }
                 }
             }
         }
@@ -132,10 +124,10 @@ struct DashboardView: View {
     private var emptyStateView: some View {
         EmptyStateView(
             icon: "checkmark.circle",
-            title: "No Tasks Today",
+            title: "Keine Aufgaben",
             message: appState.isCurrentUserParent
-                ? "Create your first chore from the Tasks tab to get started!"
-                : "You're all set! Check back later for new tasks."
+                ? "Erstelle deine erste Aufgabe im Aufgaben-Tab!"
+                : "Alles erledigt! Schau später wieder vorbei."
         )
         .frame(minHeight: 400)
     }
@@ -228,11 +220,17 @@ struct ChildProgressCard: View {
             
             Spacer()
             
-            // Percentage
-            Text("\(Int(progress * 100))%")
-                .font(AppTheme.Typography.title3)
-                .foregroundColor(progressColor)
-                .bold()
+            // Percentage and Chevron
+            HStack(spacing: AppTheme.Spacing.small) {
+                Text("\(Int(progress * 100))%")
+                    .font(AppTheme.Typography.title3)
+                    .foregroundColor(progressColor)
+                    .bold()
+                
+                Image(systemName: "chevron.right")
+                    .font(.body)
+                    .foregroundColor(AppTheme.Colors.textSecondary)
+            }
         }
         .padding(AppTheme.Spacing.medium)
         .background(AppTheme.Colors.cardBackground)
@@ -248,6 +246,141 @@ struct ChildProgressCard: View {
         } else {
             return AppTheme.Colors.warning
         }
+    }
+}
+
+// MARK: - Child Detail View
+
+struct ChildDetailView: View {
+    @EnvironmentObject var appState: AppState
+    @Environment(\.dismiss) private var dismiss
+    
+    let child: FamilyMember
+    let chores: [Chore]
+    let progress: Double
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: AppTheme.Spacing.xLarge) {
+                    // Progress Ring
+                    VStack(spacing: AppTheme.Spacing.large) {
+                        ProgressRing(progress: progress, size: 200)
+                        
+                        VStack(spacing: AppTheme.Spacing.xSmall) {
+                            Text("\(child.name)'s Fortschritt")
+                                .font(AppTheme.Typography.title2)
+                                .foregroundColor(AppTheme.Colors.text)
+                            
+                            Text("\(completedCount) von \(chores.count) Aufgaben erledigt")
+                                .font(AppTheme.Typography.caption)
+                                .foregroundColor(AppTheme.Colors.textSecondary)
+                        }
+                    }
+                    .padding(.top, AppTheme.Spacing.large)
+                    
+                    // Tasks List
+                    if !chores.isEmpty {
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
+                            SectionHeader(title: "Aufgaben")
+                            
+                            VStack(spacing: AppTheme.Spacing.small) {
+                                ForEach(chores) { chore in
+                                    TaskDetailCard(chore: chore)
+                                }
+                            }
+                        }
+                        .padding(.horizontal, AppTheme.Spacing.medium)
+                    } else {
+                        EmptyStateView(
+                            icon: "checkmark.circle",
+                            title: "Keine Aufgaben",
+                            message: "\(child.name) hat zurzeit keine zugewiesenen Aufgaben."
+                        )
+                        .frame(minHeight: 200)
+                    }
+                }
+                .padding(.bottom, AppTheme.Spacing.xLarge)
+            }
+            .background(AppTheme.Colors.background.ignoresSafeArea())
+            .navigationTitle(child.name)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Fertig") {
+                        dismiss()
+                    }
+                    .foregroundColor(AppTheme.Colors.accent)
+                }
+            }
+        }
+    }
+    
+    private var completedCount: Int {
+        chores.filter { $0.isDone }.count
+    }
+}
+
+// MARK: - Task Detail Card
+
+struct TaskDetailCard: View {
+    @EnvironmentObject var appState: AppState
+    let chore: Chore
+    
+    var body: some View {
+        HStack(spacing: AppTheme.Spacing.medium) {
+            // Checkmark
+            Image(systemName: chore.isDone ? "checkmark.circle.fill" : "circle")
+                .font(.title2)
+                .foregroundColor(chore.isDone ? AppTheme.Colors.success : AppTheme.Colors.textSecondary)
+            
+            // Task Info
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xxSmall) {
+                Text(chore.title)
+                    .font(AppTheme.Typography.body)
+                    .foregroundColor(AppTheme.Colors.text)
+                    .strikethrough(chore.isDone)
+                
+                HStack(spacing: 6) {
+                    // Recurrence
+                    if chore.recurrence != .once {
+                        HStack(spacing: 3) {
+                            Image(systemName: chore.recurrence.icon)
+                                .font(.system(size: 10))
+                            Text(chore.recurrence.displayName)
+                                .font(AppTheme.Typography.caption)
+                        }
+                        .foregroundColor(AppTheme.Colors.textSecondary)
+                    }
+                    
+                    // Deadline
+                    if chore.hasDeadline {
+                        if chore.recurrence != .once {
+                            Text("•")
+                                .foregroundColor(AppTheme.Colors.textSecondary)
+                        }
+                        
+                        HStack(spacing: 4) {
+                            Image(systemName: "clock")
+                                .font(.caption2)
+                            Text(chore.deadlineCountdown)
+                                .font(AppTheme.Typography.caption)
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 4)
+                        .background(chore.isOverdue ? AppTheme.Colors.error : AppTheme.Colors.warning)
+                        .cornerRadius(6)
+                    }
+                }
+            }
+            
+            Spacer()
+        }
+        .padding(AppTheme.Spacing.medium)
+        .background(AppTheme.Colors.cardBackground)
+        .cornerRadius(AppTheme.CornerRadius.medium)
+        .shadow(color: AppTheme.Shadow.small.color, radius: AppTheme.Shadow.small.radius)
     }
 }
 

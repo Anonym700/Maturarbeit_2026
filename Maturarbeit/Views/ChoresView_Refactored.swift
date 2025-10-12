@@ -37,7 +37,7 @@ struct ChoresView_Refactored: View {
                 if appState.isUserRegistered && appState.canCreateChores {
                     FloatingActionButton(
                         icon: "plus",
-                        accessibilityLabel: "Add new chore"
+                        accessibilityLabel: "Neue Aufgabe hinzufügen"
                     ) {
                         showingAddChore = true
                     }
@@ -45,7 +45,7 @@ struct ChoresView_Refactored: View {
                 }
             }
             .background(AppTheme.Colors.background.ignoresSafeArea())
-            .navigationTitle("Chores")
+            .navigationTitle("Aufgaben")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -100,8 +100,8 @@ struct ChoresView_Refactored: View {
     private var registrationPromptView: some View {
         EmptyStateView(
             icon: "person.crop.circle.badge.exclamationmark",
-            title: "Account Not Linked",
-            message: "Please link your iCloud account to a family member in the Family tab to continue.",
+            title: "Account nicht verbunden",
+            message: "Bitte verbinde deinen iCloud-Account mit einem Familienmitglied im Familie-Tab.",
             actionTitle: nil,
             action: nil
         )
@@ -112,11 +112,11 @@ struct ChoresView_Refactored: View {
     private var emptyStateView: some View {
         EmptyStateView(
             icon: "tray",
-            title: appState.isCurrentUserParent ? "No Chores Yet" : "No Tasks Assigned",
+            title: appState.isCurrentUserParent ? "Noch keine Aufgaben" : "Keine Aufgaben zugewiesen",
             message: appState.isCurrentUserParent
-                ? "Get started by creating your first chore. Tap the + button below."
-                : "Check back later for new tasks from your parents.",
-            actionTitle: appState.isCurrentUserParent ? "Add First Chore" : nil,
+                ? "Erstelle deine erste Aufgabe. Tippe auf den + Button unten."
+                : "Schau später wieder vorbei für neue Aufgaben von deinen Eltern.",
+            actionTitle: appState.isCurrentUserParent ? "Erste Aufgabe erstellen" : nil,
             action: appState.isCurrentUserParent ? { showingAddChore = true } : nil
         )
     }
@@ -232,13 +232,14 @@ struct ChoreRowWithActions: View {
                     
                     // Recurrence Badge
                     if chore.recurrence != .once && !chore.hasDeadline {
-                        HStack(spacing: 2) {
+                        HStack(spacing: 3) {
                             Image(systemName: chore.recurrence.icon)
-                                .font(.caption2)
+                                .font(.system(size: 10))
                             Text(chore.recurrence.displayName)
                                 .font(AppTheme.Typography.caption)
+                                .lineLimit(1)
                         }
-                        .foregroundColor(AppTheme.Colors.accent)
+                        .foregroundColor(AppTheme.Colors.textSecondary)
                     }
                     
                     // Member assignment
@@ -318,15 +319,15 @@ struct AddChoreView_Refactored: View {
         NavigationView {
             Form {
                 Section {
-                    TextField("Task title", text: $title)
+                    TextField("Aufgabenname", text: $title)
                         .focused($titleFieldIsFocused)
-                        .accessibilityLabel("Task title")
-                        .accessibilityHint("Enter a name for the task")
+                        .accessibilityLabel("Aufgabenname")
+                        .accessibilityHint("Gib einen Namen für die Aufgabe ein")
                 } header: {
-                    Text("Task Details")
+                    Text("Aufgabendetails")
                 } footer: {
                     if title.trimmingCharacters(in: .whitespaces).isEmpty && !title.isEmpty {
-                        Text("Title cannot be empty")
+                        Text("Titel darf nicht leer sein")
                             .foregroundColor(AppTheme.Colors.error)
                             .font(AppTheme.Typography.caption)
                     }
@@ -343,6 +344,13 @@ struct AddChoreView_Refactored: View {
                         }
                     }
                     .pickerStyle(.menu)
+                    .onChange(of: selectedRecurrence) { newValue in
+                        // If recurrence is not "once", disable deadline
+                        if newValue != .once {
+                            hasDeadline = false
+                            deadline = nil
+                        }
+                    }
                     
                     Text(selectedRecurrence.description)
                         .font(AppTheme.Typography.caption)
@@ -354,6 +362,13 @@ struct AddChoreView_Refactored: View {
                 Section {
                     Toggle("Deadline festlegen", isOn: $hasDeadline)
                         .tint(AppTheme.Colors.accent)
+                        .disabled(selectedRecurrence != .once)
+                        .onChange(of: hasDeadline) { newValue in
+                            // If deadline is enabled, set recurrence to "once"
+                            if newValue {
+                                selectedRecurrence = .once
+                            }
+                        }
                     
                     if hasDeadline {
                         DatePicker("Frist bis", 
@@ -364,7 +379,11 @@ struct AddChoreView_Refactored: View {
                 } header: {
                     Text("Deadline (Countdown)")
                 } footer: {
-                    if hasDeadline {
+                    if selectedRecurrence != .once {
+                        Text("Deadlines sind nur für einmalige Aufgaben verfügbar")
+                            .font(AppTheme.Typography.caption)
+                            .foregroundColor(AppTheme.Colors.textSecondary)
+                    } else if hasDeadline {
                         Text("Die Aufgabe muss bis zu diesem Zeitpunkt erledigt werden")
                             .font(AppTheme.Typography.caption)
                             .foregroundColor(AppTheme.Colors.textSecondary)
@@ -372,8 +391,8 @@ struct AddChoreView_Refactored: View {
                 }
                 
                 Section {
-                    Picker("Assign to", selection: $selectedMemberID) {
-                        Text("Select a member").tag(nil as UUID?)
+                    Picker("Zuweisen an", selection: $selectedMemberID) {
+                        Text("Mitglied auswählen").tag(nil as UUID?)
                         ForEach(members) { member in
                             HStack {
                                 Text(member.name)
@@ -383,32 +402,32 @@ struct AddChoreView_Refactored: View {
                             .tag(member.id as UUID?)
                         }
                     }
-                    .accessibilityLabel("Assign task to family member")
+                    .accessibilityLabel("Aufgabe einem Familienmitglied zuweisen")
                 } header: {
-                    Text("Assignment")
+                    Text("Zuweisung")
                 } footer: {
                     if selectedMemberID == nil {
                         HStack(spacing: AppTheme.Spacing.xxSmall) {
                             Image(systemName: "exclamationmark.circle.fill")
                                 .font(.caption)
-                            Text("Please assign this task to a family member")
+                            Text("Bitte weise diese Aufgabe einem Familienmitglied zu")
                         }
                         .foregroundColor(AppTheme.Colors.warning)
                         .font(AppTheme.Typography.caption)
                     }
                 }
             }
-            .navigationTitle("New Task")
+            .navigationTitle("Neue Aufgabe")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button("Abbrechen") {
                         dismiss()
                     }
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") {
+                    Button("Speichern") {
                         // Set deadline based on toggle
                         deadline = hasDeadline ? deadlineDate : nil
                         onSave()
@@ -502,14 +521,14 @@ struct EditChoreView: View {
     private var editForm: some View {
         Form {
             Section {
-                TextField("Task title", text: $title)
+                TextField("Aufgabenname", text: $title)
                     .focused($titleFieldIsFocused)
-                    .accessibilityLabel("Task title")
+                    .accessibilityLabel("Aufgabenname")
             } header: {
-                Text("Task Details")
+                Text("Aufgabendetails")
             } footer: {
                 if title.trimmingCharacters(in: .whitespaces).isEmpty && !title.isEmpty {
-                    Text("Title cannot be empty")
+                    Text("Titel darf nicht leer sein")
                         .foregroundColor(AppTheme.Colors.error)
                         .font(AppTheme.Typography.caption)
                 }
@@ -531,12 +550,12 @@ struct EditChoreView: View {
                         .font(AppTheme.Typography.caption)
                         .foregroundColor(AppTheme.Colors.textSecondary)
                 } header: {
-                    Text("Frequency")
+                    Text("Häufigkeit")
                 }
                 
             Section {
-                Picker("Assign to", selection: $selectedMemberID) {
-                    Text("Select a member").tag(nil as UUID?)
+                Picker("Zuweisen an", selection: $selectedMemberID) {
+                    Text("Mitglied auswählen").tag(nil as UUID?)
                     ForEach(members) { member in
                         HStack {
                             Text(member.name)
@@ -547,13 +566,13 @@ struct EditChoreView: View {
                     }
                 }
             } header: {
-                Text("Assignment")
+                Text("Zuweisung")
             } footer: {
                 if selectedMemberID == nil {
                     HStack(spacing: AppTheme.Spacing.xxSmall) {
                         Image(systemName: "exclamationmark.circle.fill")
                             .font(.caption)
-                        Text("Please assign this task to a family member")
+                        Text("Bitte weise diese Aufgabe einem Familienmitglied zu")
                     }
                     .foregroundColor(AppTheme.Colors.warning)
                     .font(AppTheme.Typography.caption)
