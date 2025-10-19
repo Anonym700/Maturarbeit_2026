@@ -14,7 +14,6 @@ struct SettingsView: View {
     @EnvironmentObject var healthChecker: CloudKitHealthChecker
     @Environment(\.colorScheme) var colorScheme
     @AppStorage("notificationsEnabled") private var notificationsEnabled = true
-    @State private var showingResetConfirmation = false
     @State private var showingThemeSheet = false
     @State private var showingHelpSheet = false
     @State private var reloadState: ReloadButtonState = .idle
@@ -129,14 +128,6 @@ struct SettingsView: View {
                 .background(AppTheme.Colors.cardBackground)
                 .cornerRadius(AppTheme.CornerRadius.medium)
                 
-                Button(action: { showingResetConfirmation = true }) {
-                    SettingRow(
-                        icon: "arrow.counterclockwise",
-                        title: "Tägliche Aufgaben zurücksetzen",
-                        value: nil
-                    )
-                }
-                
                 Button(action: { 
                     // Force app restart with fresh data
                     UserDefaults.standard.set("1.0", forKey: "appDataVersion")
@@ -162,16 +153,6 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showingHelpSheet) {
             HelpSupportSheet()
-        }
-        .alert("Tägliche Aufgaben zurücksetzen", isPresented: $showingResetConfirmation) {
-            Button("Abbrechen", role: .cancel) { }
-            Button("Zurücksetzen", role: .destructive) {
-                Task {
-                    await appState.resetDailyTasks()
-                }
-            }
-        } message: {
-            Text("Dies setzt alle Aufgaben auf unvollständig zurück. Diese Aktion kann nicht rückgängig gemacht werden.")
         }
     }
     

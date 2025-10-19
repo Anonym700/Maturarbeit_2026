@@ -4,7 +4,7 @@ import Foundation
 @MainActor
 final class CloudKitHealthChecker: ObservableObject {
     @Published var isHealthy: Bool = false
-    @Published var healthMessage: String = "Checking CloudKit..."
+    @Published var healthMessage: String = "CloudKit wird überprüft..."
     @Published var accountStatus: CKAccountStatus = .couldNotDetermine
     
     private let manager = CloudKitManager.shared
@@ -16,7 +16,7 @@ final class CloudKitHealthChecker: ObservableObject {
         
         guard accountStatus == .available else {
             isHealthy = false
-            healthMessage = "❌ iCloud not available: \(accountStatus.description)"
+            healthMessage = "iCloud nicht verfügbar: \(accountStatus.description)"
             return
         }
         
@@ -25,7 +25,7 @@ final class CloudKitHealthChecker: ObservableObject {
             try await manager.ensureCustomZoneExists()
         } catch {
             isHealthy = false
-            healthMessage = "❌ Failed to create custom zone: \(error.localizedDescription)"
+            healthMessage = "Fehler beim Erstellen der Zone: \(error.localizedDescription)"
             return
         }
         
@@ -33,11 +33,11 @@ final class CloudKitHealthChecker: ObservableObject {
         do {
             _ = try await manager.fetch(recordType: "Chore", predicate: NSPredicate(value: true))
             isHealthy = true
-            healthMessage = "✅ CloudKit is healthy"
+            healthMessage = "CloudKit ist aktiv"
         } catch {
             // First time setup - no records yet, still healthy
             isHealthy = true
-            healthMessage = "✅ CloudKit ready (no records yet)"
+            healthMessage = "CloudKit aktiv (noch keine Einträge)"
         }
     }
 }

@@ -317,11 +317,11 @@ struct ProgressRing: View {
                 .stroke(AppTheme.Colors.textTertiary.opacity(0.2), lineWidth: lineWidth)
                 .frame(width: size, height: size)
             
-            // Progress ring
+            // Progress ring - green when 100%, accent otherwise
             Circle()
                 .trim(from: 0, to: progress)
                 .stroke(
-                    AppTheme.Colors.accent,
+                    progress >= 1.0 ? AppTheme.Colors.success : AppTheme.Colors.accent,
                     style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
                 )
                 .frame(width: size, height: size)
@@ -331,8 +331,8 @@ struct ProgressRing: View {
             // Center content
             VStack(spacing: AppTheme.Spacing.xxSmall) {
                 if progress >= 1.0 && showCheckmark {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: size * 0.3))
+                    Image(systemName: "checkmark")
+                        .font(.system(size: size * 0.35, weight: .bold))
                         .foregroundColor(AppTheme.Colors.success)
                         .transition(.scale.combined(with: .opacity))
                 } else {
@@ -409,10 +409,6 @@ struct TaskSummaryCard: View {
                 Text(title)
                     .font(AppTheme.Typography.headline)
                     .foregroundColor(AppTheme.Colors.text)
-                
-                Text("Goal: \(targetValue)")
-                    .font(AppTheme.Typography.caption)
-                    .foregroundColor(AppTheme.Colors.textSecondary)
             }
             
             Spacer()
@@ -422,13 +418,12 @@ struct TaskSummaryCard: View {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.title2)
                     .foregroundColor(AppTheme.Colors.success)
-                    .accessibilityLabel("Completed")
+                    .accessibilityLabel("Erledigt")
             } else {
-                Text("\(currentValue)")
+                Image(systemName: "circle")
                     .font(.title2)
-                    .fontWeight(.semibold)
-                    .foregroundColor(AppTheme.Colors.text)
-                    .accessibilityLabel("Progress: \(currentValue) of \(targetValue)")
+                    .foregroundColor(AppTheme.Colors.textSecondary)
+                    .accessibilityLabel("Noch nicht erledigt")
             }
         }
         .padding(AppTheme.Spacing.medium)

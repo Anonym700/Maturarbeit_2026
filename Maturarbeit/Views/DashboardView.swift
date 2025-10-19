@@ -82,6 +82,11 @@ struct DashboardView: View {
                 // For children: show their own progress ring
                 ProgressRing(progress: progressPercentage, size: 220)
                     .padding(.vertical, AppTheme.Spacing.medium)
+                
+                // Show today's tasks for children
+                if !visibleChores.isEmpty {
+                    todayTasksSection
+                }
             }
         }
         .sheet(isPresented: $showChildDetail) {
@@ -92,6 +97,34 @@ struct DashboardView: View {
                     progress: progressPercentage(for: child.id)
                 )
                 .environmentObject(appState)
+            }
+        }
+    }
+    
+    // MARK: - Today's Tasks Section (for children)
+    
+    private var todayTasksSection: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
+            SectionHeader(title: "Heutige Aufgaben")
+            
+            VStack(spacing: AppTheme.Spacing.small) {
+                ForEach(visibleChores) { chore in
+                    Button(action: {
+                        Task {
+                            await appState.toggleChore(chore)
+                        }
+                    }) {
+                        TaskSummaryCard(
+                            title: chore.title,
+                            targetValue: 1,
+                            currentValue: chore.isDone ? 1 : 0,
+                            isCompleted: chore.isDone
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!appState.canCompleteChore(chore))
+                    .opacity(appState.canCompleteChore(chore) ? 1.0 : 0.6)
+                }
             }
         }
     }
